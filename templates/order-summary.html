@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load my_template_tags %}
+
+{% block head_title %}MarketPlace{% endblock %}
+
+
+{% block content %}
+
+<body>
+
+    <!--Main layout-->
+    <main>
+
+        <div class="container pt-7">
+
+            <h1>Cart:</h1>
+            {% if order.get_total_order_price == 0 %}
+            <p>your cart is empty</p>
+            {% else %}
+
+            {% for order_item in order.order_items.all %}
+            <!-- Card Regular -->
+            <div class="card card-cascade mb-3">
+                <div class="row no-gutters wow fadeIn">
+                    <div class="col-md-2">
+                        <!-- Card image -->
+                        <div class="view view-cascade overlay">
+                            <img class="card-img-top contain-240" src="{{ order_item.item.img }}">
+                            <a>
+                                <div class="mask rgba-white-slight"></div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <!-- Card content -->
+                        <div class="card-body card-body-cascade">
+
+                            <!-- Title -->
+                            <h5 class="font-weight-bold card-title mt-2">{{ order_item.item.name }}</h5>
+                            Price: {{ order_item.item.get_price }} $
+                            <br>
+                            <small><a href="{% url 'core:update_cart' order_item.item.id '0' %}"
+                                    class="text-danger">remove</a></small>
+                            <br>
+
+
+
+                            <!-- Button -->
+                            <button class="btn btn-primary btn-sm ml-0 mt-4 dropdown-toggle"
+                                id="quantity-dropdown-button" aria-haspopup="true" aria-expanded="false"
+                                data-toggle="dropdown" type="button" style="text-transform: none;">
+                                Quantity: {{ order_item.quantity }} </button>
+
+                            <div class="dropdown-menu" aria-labelledby="quantity-dropdown-button">
+                                <a class="dropdown-item"
+                                    href="{% url 'core:update_cart' order_item.item.id '1' %}">1</a>
+                                <a class="dropdown-item"
+                                    href="{% url 'core:update_cart' order_item.item.id '2' %}">2</a>
+                                <a class="dropdown-item"
+                                    href="{% url 'core:update_cart' order_item.item.id '3' %}">3</a>
+                                <a class="dropdown-item"
+                                    href="{% url 'core:update_cart' order_item.item.id '4' %}">4</a>
+                                <a class="dropdown-item"
+                                    href="{% url 'core:update_cart' order_item.item.id '5' %}">5</a>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="col-md-2 p-4">
+                        <!-- Total Price -->
+                        <div class="text-right">
+                            <h5>{{ order_item.get_total_price }} $</h5>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <!-- Card Regular-->
+
+            {% endfor %}
+
+
+            <div class="row wow fadeIn">
+                <div class="col-md-8"></div>
+                <div class="col-md-2 text-right">
+                    <h4>Total: </h4>
+                </div>
+                <div class="col-md-2">
+                    <h4>{{ order.get_total_order_price }} $</h4>
+                </div>
+
+            </div>
+
+
+            <div class="text-center">
+                <a href="{% url 'core:home' %}">
+                    <button class="btn btn-default btn-md my-0 p" type="submit">Continue Shoppig</button>
+                </a>
+                <a href="{% url 'core:checkout' %}">
+                    <button class="btn btn-primary btn-md my-0 p" type="submit">Procede to checkout</button>
+                </a>
+            </div>
+
+        </div>
+        {% endif %}
+        </div>
+
+    </main>
+    <!--Main layout-->
+
+</body>
+{% endblock content %}

@@ -1,0 +1,25 @@
+{% load my_template_tags %}
+
+{% if messages %}
+{% for message in messages %}
+
+{% if message.tags == "success" %}
+{% define "primary" as color %}
+{% elif message.tags == "error" %}
+{% define "danger" as color %}
+{% endif %}
+
+<div class="alert alert-{{ color }} alert-dismissible fade show mt-6" role="alert">
+    <strong>
+        {% if user.is_authenticated %}
+        {{ user.get_username }}
+        {% endif %}
+    </strong>
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+{% endfor %}
+{% endif %}

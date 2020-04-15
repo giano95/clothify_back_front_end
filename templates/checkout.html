@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+
 {% block head_title %}MarketPlace{% endblock %}
 
 {% block content %}
@@ -21,13 +22,7 @@
       <div class="row">
 
         <!--Grid column-->
-        <div class="col-md-8 mb-4">
-
-          <form>
-            {% csrf_token %}
-            {{ form|crispy }}
-
-          </form>
+        <div class="col-md-8 mb-4 select-style">
 
           <!--Card-->
           <div class="card">
@@ -42,8 +37,8 @@
                 <div class="col-md-6 mb-2">
 
                   <!--firstName-->
-                  <div class="md-form ">
-                    <input type="text" id="firstName" class="form-control">
+                  <div class="md-form">
+                    {{ form.firstName }}
                     <label for="firstName" class="">First name</label>
                   </div>
 
@@ -55,7 +50,7 @@
 
                   <!--lastName-->
                   <div class="md-form">
-                    <input type="text" id="lastName" class="form-control">
+                    {{ form.lastName }}
                     <label for="lastName" class="">Last name</label>
                   </div>
 
@@ -70,24 +65,24 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="basic-addon1">@</span>
                 </div>
-                <input type="text" class="form-control py-0" placeholder="Username" aria-describedby="basic-addon1">
+                {{ form.userName }}
               </div>
 
               <!--email-->
               <div class="md-form mb-5">
-                <input type="text" id="email" class="form-control" placeholder="youremail@example.com">
-                <label for="email" class="">Email (optional)</label>
+                {{ form.email }}
+                <label for="email" class="">Email</label>
               </div>
 
               <!--address-->
               <div class="md-form mb-5">
-                <input type="text" id="address" class="form-control" placeholder="1234 Main St">
+                {{ form.address }}
                 <label for="address" class="">Address</label>
               </div>
 
               <!--address-2-->
               <div class="md-form mb-5">
-                <input type="text" id="address-2" class="form-control" placeholder="Apartment or suite">
+                {{ form.address2 }}
                 <label for="address-2" class="">Address 2 (optional)</label>
               </div>
 
@@ -98,10 +93,7 @@
                 <div class="col-lg-4 col-md-12 mb-4">
 
                   <label for="country">Country</label>
-                  <select class="custom-select d-block w-100" id="country" required>
-                    <option value="">Choose...</option>
-                    <option>United States</option>
-                  </select>
+                  {{ form.country }}
                   <div class="invalid-feedback">
                     Please select a valid country.
                   </div>
@@ -112,16 +104,25 @@
                 <!--Grid column-->
                 <div class="col-lg-4 col-md-6 mb-4">
 
-                  <label for="state">State</label>
-                  <select class="custom-select d-block w-100" id="state" required>
-                    <option value="">Choose...</option>
-                    <option>California</option>
-                  </select>
+                  <label for="state">Region</label>
+                  {{ form.region }}
                   <div class="invalid-feedback">
-                    Please provide a valid state.
+                    Please provide a valid region.
                   </div>
 
                 </div>
+
+                <!--Grid column-->
+                <div class="col-lg-4 col-md-6 mb-4">
+
+                  <label for="state">City</label>
+                  {{ form.city }}
+                  <div class="invalid-feedback">
+                    Please provide a valid city.
+                  </div>
+
+                </div>
+
                 <!--Grid column-->
 
                 <!--Grid column-->
@@ -282,8 +283,73 @@
 {% endblock content %}
 
 {% block extra_scripts %}
+<!-- Navbar active current page -->
 <script type="text/javascript">
   var element = document.getElementById("checkout");
   element.classList.add("active");
+</script>
+
+<!-- Filter the form field by the value of another field -->
+<script language="javascript">
+
+  cities = {{ form.cities | safe }};
+  regions = {{ form.regions | safe }};
+  countries = {{ form.countries | safe }};
+
+  populateCountry();
+  $('#id_country').change(function () { populateRegion(this) });
+
+  $("#id_region").empty();
+  $("#id_region").append('<option value="" disabled selected>First select a Country</option>');
+  $('#id_region').change(function () { populateCity(this) });
+
+  $("#id_city").empty();
+  $("#id_city").append('<option value="" disabled selected>First select a Region</option>');
+
+  // populate the country select widget
+  function populateCountry() {
+    $('#id_country').empty();
+    $("#id_country").append('<option value="" disabled selected>Select your option</option>');
+    $.each(countries, function (v) {
+      $('#id_country')
+        .append($("<option></option>")
+          .attr("value", countries[v])
+          .text(countries[v]));
+    });
+  }
+
+  // populate the region select widget 
+  function populateRegion(event) {
+    country = $("#id_country option:selected").text();
+    $("#id_region").empty();
+    $("#id_region").append('<option value="" disabled selected>Select your option</option>');
+    for (let [c, cregions] of Object.entries(regions)) {
+      if (c == country) {
+        for (region in cregions) {
+          $('#id_region')
+            .append($("<option></option>")
+              .attr("value", cregions[region])
+              .text(cregions[region]));
+        }
+      }
+    }
+  }
+
+  // populate the city select widget
+  function populateCity(event) {
+    region = $("#id_region option:selected").text();
+    $("#id_city").empty();
+    $("#id_city").append('<option value="" disabled selected>Select your option</option>');
+    for (let [r, rcities] of Object.entries(cities)) {
+      if (r == region) {
+        for (city in rcities) {
+          $('#id_city')
+            .append($("<option></option>")
+              .attr("value", rcities[city])
+              .text(rcities[city]));
+        }
+      }
+    }
+  }
 </script>
 {% endblock extra_scripts %}

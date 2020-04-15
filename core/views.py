@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
 from .models import Item, OrderItem, Order
+from cities_light.models import Country, Region
 from .forms import CheckoutForm
 
 

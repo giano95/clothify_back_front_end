@@ -6,6 +6,7 @@ from .views import (
     CheckoutView,
     add_to_cart,
     update_cart,
+    register,
 )
 
 
@@ -17,4 +18,5 @@ urlpatterns = [
     path('order_summary/', OrderSummaryView.as_view(), name='order_summary'),
     path('add_to_cart/<pk>/', add_to_cart, name='add_to_cart'),
     path('update_cart/<pk>/<q>/', update_cart, name='update_cart'),
+    path('register/', register, name="register"),
 ]

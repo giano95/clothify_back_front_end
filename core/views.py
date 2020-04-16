@@ -5,10 +5,12 @@ from django.contrib import messages
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib import auth
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
 
-from .models import Item, OrderItem, Order
-from cities_light.models import Country, Region
-from .forms import CheckoutForm
+from .models import Item, OrderItem, Order, User, Profile
+from .forms import CheckoutForm, RegisterForm
 
 
 class HomeView(ListView):
@@ -115,3 +117,23 @@ def update_cart(request, pk, q):
         order_item.save()
 
     return redirect('core:order_summary')
+
+
+def register(request):
+    form = RegisterForm(request.POST)
+    if form.is_valid():
+        Profile = form.save()
+        Profile.refresh_from_db()
+        Profile.profile.first_name = form.cleaned_data.get('first_name')
+        Profile.profile.last_name = form.cleaned_data.get('last_name')
+        Profile.profile.email = form.cleaned_data.get('email')
+        Profile.profile.type = form.cleaned_data.get('type')
+        Profile.save()
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password1')
+        Profile = authenticate(username=username, password=password)
+        login(request, Profile)
+        return redirect('core:home')
+    else:
+        form = RegisterForm()
+    return render(request, 'register/register-form.html', {'form': form})

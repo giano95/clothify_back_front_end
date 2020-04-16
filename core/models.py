@@ -1,7 +1,10 @@
 from django.db import models
 from django.conf import settings
 from django.shortcuts import reverse
-from cities_light.models import Country, Region, City
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.core.exceptions import ObjectDoesNotExist
 
 
 LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris id turpis porttitor, vestibulum massa vel, tristique ante. Curabitur hendrerit quam massa, sit amet lobortis tellus consectetur eu. Suspendisse aliquet commodo tristique. Vivamus maximus pharetra sapien, ornare tempor libero egestas sed. Phasellus massa magna, tincidunt vitae nisl eget, rhoncus bibendum enim. Duis sed lectus sed leo pharetra ultrices id sit amet dolor. Vivamus pellentesque mi sed dignissim rhoncus. Nunc in sollicitudin quam. Nullam ornare dui quis sapien bibendum, nec sagittis purus venenatis.'
@@ -92,3 +95,33 @@ class Order(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class Profile(models.Model):
+
+    ACCOUNT_TYPE_CHOICES = (
+        ('0', "I'm a buyer"),
+        ('1', "I'm a seller"),
+    )
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='profile', default='')
+    first_name = models.CharField('first_name', max_length=100, blank=True)
+    last_name = models.CharField('last_name', max_length=100, blank=True)
+    email = models.EmailField(max_length=150)
+    type = models.CharField(
+        max_length=1, choices=ACCOUNT_TYPE_CHOICES, default='0')
+
+    @property
+    def is_seller(self):
+        return self.type == self.ACCOUNT_TYPE_CHOICES[1][0]
+
+    def __str__(self):
+        return self.user.username
+
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        try:
+            instance.profile.save()
+        except ObjectDoesNotExist:
+            Profile.objects.create(user=instance)

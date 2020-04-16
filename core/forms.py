@@ -1,5 +1,7 @@
 from django import forms
 from cities_light.models import Country, Region, City
+from django.contrib.auth.forms import UserCreationForm
+from .models import Profile, User
 import json as json
 
 PAYMENT_CHOICES = (
@@ -87,3 +89,15 @@ class CheckoutForm(forms.Form):
     countries = json.dumps(dict_countries)
     regions = json.dumps(dict_regions)
     cities = json.dumps(dict_cities)
+
+
+class RegisterForm(UserCreationForm):
+    first_name = forms.CharField(max_length=100, help_text='First Name')
+    last_name = forms.CharField(max_length=100, help_text='Last Name')
+    email = forms.EmailField(max_length=150, help_text='Email')
+    type = forms.ChoiceField(choices=Profile.ACCOUNT_TYPE_CHOICES)
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name',
+                  'email', 'password1', 'password2', 'type')

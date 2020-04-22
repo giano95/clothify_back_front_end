@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.core.exceptions import ObjectDoesNotExist
+from picklefield.fields import PickledObjectField
+from django.contrib.auth.models import AbstractUser
 
 
 LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris id turpis porttitor, vestibulum massa vel, tristique ante. Curabitur hendrerit quam massa, sit amet lobortis tellus consectetur eu. Suspendisse aliquet commodo tristique. Vivamus maximus pharetra sapien, ornare tempor libero egestas sed. Phasellus massa magna, tincidunt vitae nisl eget, rhoncus bibendum enim. Duis sed lectus sed leo pharetra ultrices id sit amet dolor. Vivamus pellentesque mi sed dignissim rhoncus. Nunc in sollicitudin quam. Nullam ornare dui quis sapien bibendum, nec sagittis purus venenatis.'
@@ -24,17 +26,78 @@ LABEL_COLOR_CHOICES = (
     ('D', 'danger-color')
 )
 
+UNIT_CHOICES = (
+    ('stock', 'STOCK'),
+    ('each', 'EACH'),
+)
+
+
+class User(AbstractUser):
+    TYPE_CHOICES = (
+        ('Buyer', 'Buyer'),
+        ('Seller', 'Seller')
+    )
+
+    user_type = models.CharField(
+        choices=TYPE_CHOICES, max_length=10)
+    connected_account_id = models.TextField(blank=True, null=True)
+
+    def get_user_type(self):
+        return self.user_type
+
+
+class CheckoutInfo(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
+    first_name = models.TextField()
+    last_name = models.TextField()
+    email = models.EmailField()
+    first_address = models.TextField()
+    billing_address = models.TextField(blank=True, null=True)
+    country = models.TextField()
+    region = models.TextField()
+    city = models.TextField()
+    zip_code = models.TextField()
+
+    def __str__(self):
+        return self.user.username + 'checkout info'
+
+
+class PostManager(models.Manager):
+    def search(self, **kwargs):
+        qs = super().get_queryset()
+
+        # TODO:
+        # Split query into words, case insensitive search each field:
+        # owner name, title, body, tags, location
+
+        if 'query' in kwargs:
+            query = kwargs['query']
+            qs = qs.filter(Q(title__icontains=query)
+                           | Q(body__icontains=query))
+
+        if 'tags' in kwargs:
+            tags = kwargs['tags']
+            # Filter to posts with tags in the provided set
+            qs = qs.filter(tags__name__in=tags)
+
+        return qs
+
 
 class Item(models.Model):
-    # Required fields
     id = models.AutoField(primary_key=True)
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              on_delete=models.CASCADE, blank=True, null=True)
+    objects = PostManager()
     name = models.CharField(max_length=100)
     price = models.FloatField()
     category = models.CharField(choices=CATEGORY_CHOICES, max_length=2)
     description = models.CharField(max_length=1000, default=LOREM_IPSUM)
-    img = models.CharField(max_length=100, default=DEFAULT_IMG)
-
-    # Optional fields
+    img = models.ImageField(upload_to='item/img/',
+                            blank=True, default=DEFAULT_IMG)
+    unit = models.CharField(
+        max_length=80, choices=UNIT_CHOICES, default='each')
     discounted_price = models.FloatField(blank=True, null=True)
     label = models.CharField(max_length=25, blank=True, null=True)
     label_color = models.CharField(
@@ -49,6 +112,12 @@ class Item(models.Model):
     def get_discount(self):
         if self.discounted_price:
             return self.price - self.discounted_price
+        else:
+            return 0
+
+    def get_recommended_item(self):
+        if self.category:
+            return Item.objects.filter(category=self.category).exclude(id=self.id)[:4]
         else:
             return 0
 
@@ -86,42 +155,14 @@ class Order(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     ordered_date = models.DateTimeField()
     is_ordered = models.BooleanField(default=False)
+    checkout_info = models.ForeignKey(
+        CheckoutInfo, on_delete=models.SET_NULL, null=True, blank=True)
 
     def get_total_order_price(self):
-        total = 0
+        total = 0.0
         for order_item in self.order_items.all():
-            total += order_item.get_total_price()
+            total += float(order_item.get_total_price())
         return total
 
     def __str__(self):
         return self.user.username
-
-
-class Profile(models.Model):
-
-    ACCOUNT_TYPE_CHOICES = (
-        ('0', "I'm a buyer"),
-        ('1', "I'm a seller"),
-    )
-
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='profile', default='')
-    first_name = models.CharField('first_name', max_length=100, blank=True)
-    last_name = models.CharField('last_name', max_length=100, blank=True)
-    email = models.EmailField(max_length=150)
-    type = models.CharField(
-        max_length=1, choices=ACCOUNT_TYPE_CHOICES, default='0')
-
-    @property
-    def is_seller(self):
-        return self.type == self.ACCOUNT_TYPE_CHOICES[1][0]
-
-    def __str__(self):
-        return self.user.username
-
-    @receiver(post_save, sender=User)
-    def create_user_profile(sender, instance, created, **kwargs):
-        try:
-            instance.profile.save()
-        except ObjectDoesNotExist:
-            Profile.objects.create(user=instance)

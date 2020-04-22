@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 
 
 {% block head_title %}MarketPlace{% endblock %}
@@ -16,7 +15,7 @@
     <div class="container wow fadeIn">
 
       <!-- Heading -->
-      <h2 class="my-5 h2 text-center">Checkout form</h2>
+      <h2 class="my-5 h2 text-center">Checkout</h2>
 
       <!--Grid row-->
       <div class="row">
@@ -28,7 +27,8 @@
           <div class="card">
 
             <!--Card content-->
-            <form class="card-body">
+            <form method="POST" class="card-body">
+              {% csrf_token %}
 
               <!--Grid row-->
               <div class="row">
@@ -38,8 +38,8 @@
 
                   <!--firstName-->
                   <div class="md-form">
-                    {{ form.firstName }}
-                    <label for="firstName" class="">First name</label>
+                    {{ form.first_name }}
+                    <label for="first_name" class="">First name</label>
                   </div>
 
                 </div>
@@ -50,8 +50,8 @@
 
                   <!--lastName-->
                   <div class="md-form">
-                    {{ form.lastName }}
-                    <label for="lastName" class="">Last name</label>
+                    {{ form.last_name }}
+                    <label for="last_name" class="">Last name</label>
                   </div>
 
                 </div>
@@ -60,30 +60,26 @@
               </div>
               <!--Grid row-->
 
-              <!--Username-->
-              <div class="md-form input-group pl-0 mb-5">
+              <!--email-->
+              <div class="md-form input-group pl-0 mb-4">
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="basic-addon1">@</span>
                 </div>
-                {{ form.userName }}
+                {{ form.email }}
               </div>
 
-              <!--email-->
-              <div class="md-form mb-5">
-                {{ form.email }}
-                <label for="email" class="">Email</label>
-              </div>
+              <div class="row"></div>
 
               <!--address-->
               <div class="md-form mb-5">
-                {{ form.address }}
-                <label for="address" class="">Address</label>
+                {{ form.first_address }}
+                <label for="first_address" class="">Address</label>
               </div>
 
               <!--address-2-->
               <div class="md-form mb-5">
-                {{ form.address2 }}
-                <label for="address-2" class="">Address 2 (optional)</label>
+                {{ form.billing_address }}
+                <label for="billing_address" class="">Billing address (optional)</label>
               </div>
 
               <!--Grid row-->
@@ -92,7 +88,7 @@
                 <!--Grid column-->
                 <div class="col-lg-4 col-md-12 mb-4">
 
-                  <label for="country">Country</label>
+                  <label for="countryLabel">Country</label>
                   {{ form.country }}
                   <div class="invalid-feedback">
                     Please select a valid country.
@@ -104,7 +100,7 @@
                 <!--Grid column-->
                 <div class="col-lg-4 col-md-6 mb-4">
 
-                  <label for="state">Region</label>
+                  <label for="regionLabel">Region</label>
                   {{ form.region }}
                   <div class="invalid-feedback">
                     Please provide a valid region.
@@ -115,23 +111,10 @@
                 <!--Grid column-->
                 <div class="col-lg-4 col-md-6 mb-4">
 
-                  <label for="state">City</label>
+                  <label for="cityLabel">City</label>
                   {{ form.city }}
                   <div class="invalid-feedback">
                     Please provide a valid city.
-                  </div>
-
-                </div>
-
-                <!--Grid column-->
-
-                <!--Grid column-->
-                <div class="col-lg-4 col-md-6 mb-4">
-
-                  <label for="zip">Zip</label>
-                  <input type="text" class="form-control" id="zip" placeholder="" required>
-                  <div class="invalid-feedback">
-                    Zip code required.
                   </div>
 
                 </div>
@@ -142,31 +125,50 @@
 
               <hr>
 
-              <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" id="same-address">
-                <label class="custom-control-label" for="same-address">Shipping address is the same as my billing
-                  address</label>
+              <!--Grid row-->
+              <div class="row mb-3">
+
+                <!--Grid column-->
+                <div class="col-md-4">
+                  <label for="zip_code" class="">Zip code</label>
+                  {{ form.zip_code }}
+                  <div class="invalid-feedback">
+                    Zip code required.
+                  </div>
+
+                </div>
+                <!--Grid column-->
+
+                <!--Grid column-->
+                <div class="col-md-8 mt-4">
+
+                  <div class="custom-control custom-checkbox">
+                    {{ form.same_billing_address }}
+                    <label class="custom-control-label" for="same_billing_address">Shipping address is the same as my
+                      billing
+                      address</label>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                    {{ form.save_info }}
+                    <label class="custom-control-label" for="save_info">Save this information for next time</label>
+                  </div>
+
+                </div>
+                <!--Grid column-->
+
               </div>
-              <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" id="save-info">
-                <label class="custom-control-label" for="save-info">Save this information for next time</label>
-              </div>
+              <!--Grid row-->
 
               <hr>
 
               <div class="d-block my-3">
+                {% for value, name in form.fields.payment_option.choices %}
                 <div class="custom-control custom-radio">
-                  <input id="credit" name="paymentMethod" type="radio" class="custom-control-input" checked required>
-                  <label class="custom-control-label" for="credit">Credit card</label>
+                  <input id="{{ name }}" name="payment_option" type="radio" class="custom-control-input"
+                    value="{{value}}" required>
+                  <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
                 </div>
-                <div class="custom-control custom-radio">
-                  <input id="debit" name="paymentMethod" type="radio" class="custom-control-input" required>
-                  <label class="custom-control-label" for="debit">Debit card</label>
-                </div>
-                <div class="custom-control custom-radio">
-                  <input id="paypal" name="paymentMethod" type="radio" class="custom-control-input" required>
-                  <label class="custom-control-label" for="paypal">Paypal</label>
-                </div>
+                {% endfor %}
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
@@ -292,64 +294,54 @@
 <!-- Filter the form field by the value of another field -->
 <script language="javascript">
 
-  cities = {{ form.cities | safe }};
-  regions = {{ form.regions | safe }};
-  countries = {{ form.countries | safe }};
-
-  populateCountry();
+  populateCountry()
   $('#id_country').change(function () { populateRegion(this) });
-
-  $("#id_region").empty();
-  $("#id_region").append('<option value="" disabled selected>First select a Country</option>');
   $('#id_region').change(function () { populateCity(this) });
 
-  $("#id_city").empty();
-  $("#id_city").append('<option value="" disabled selected>First select a Region</option>');
-
-  // populate the country select widget
+  // populate the coutry select widget
   function populateCountry() {
-    $('#id_country').empty();
-    $("#id_country").append('<option value="" disabled selected>Select your option</option>');
-    $.each(countries, function (v) {
-      $('#id_country')
-        .append($("<option></option>")
-          .attr("value", countries[v])
-          .text(countries[v]));
+    var response = fetch('/get_countries/').then(function (response) {
+      return response.json();
+    }).then(function (responseJson) {
+      var countries = responseJson.countries;
+      $("#id_country").append('<option value="" disabled selected></option>');
+      $("#id_region").append('<option value="" disabled selected></option>');
+      $("#id_city").append('<option value="" disabled selected></option>');
+      for (country of countries) {
+        $("#id_country").append(new Option(country, country));
+      }
     });
   }
 
   // populate the region select widget 
   function populateRegion(event) {
     country = $("#id_country option:selected").text();
-    $("#id_region").empty();
-    $("#id_region").append('<option value="" disabled selected>Select your option</option>');
-    for (let [c, cregions] of Object.entries(regions)) {
-      if (c == country) {
-        for (region in cregions) {
-          $('#id_region')
-            .append($("<option></option>")
-              .attr("value", cregions[region])
-              .text(cregions[region]));
-        }
+    var response = fetch('/get_regions/?country_name=' + country).then(function (response) {
+      return response.json();
+    }).then(function (responseJson) {
+      var regions = responseJson.regions;
+      $("#id_region").empty();
+      $("#id_city").empty();
+      $("#id_region").append('<option value="" disabled selected></option>');
+      for (region of regions) {
+        $("#id_region").append(new Option(region, region));
       }
-    }
+    });
   }
 
-  // populate the city select widget
+  // populate the region select widget 
   function populateCity(event) {
     region = $("#id_region option:selected").text();
-    $("#id_city").empty();
-    $("#id_city").append('<option value="" disabled selected>Select your option</option>');
-    for (let [r, rcities] of Object.entries(cities)) {
-      if (r == region) {
-        for (city in rcities) {
-          $('#id_city')
-            .append($("<option></option>")
-              .attr("value", rcities[city])
-              .text(rcities[city]));
-        }
+    var response = fetch('/get_cities/?region_name=' + region).then(function (response) {
+      return response.json();
+    }).then(function (responseJson) {
+      var cities = responseJson.cities;
+      $("#id_city").empty();
+      $("#id_city").append('<option value="" disabled selected></option>');
+      for (city of cities) {
+        $("#id_city").append(new Option(city, city));
       }
-    }
+    });
   }
 </script>
 {% endblock extra_scripts %}

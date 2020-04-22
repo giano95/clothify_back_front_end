@@ -21,7 +21,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'crispy_forms',
-    'cities_light'
+    'cities_light',
+    'stripe',
 ]
 
 MIDDLEWARE = [
@@ -82,16 +83,30 @@ if ENVIRONMENT == 'production':
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Auth code
+# Authentication backend
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
+# alluth stuff
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
+ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 10
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 3600
+ACCOUNT_FORMS = {
+    'signup': 'core.forms.CustomUserCreationForm',
+}
+# refer to this https://django-allauth.readthedocs.io/en/latest/faq.html#when-i-sign-up-i-run-into-connectivity-errors-connection-refused-et-al
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_ADAPTER = 'core.adapters.AccountAdapter'
 
 # CRISPY FORMS
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # smart_selects stuff
 USE_DJANGO_JQUERY = True
+
+# used to override the django user model
+AUTH_USER_MODEL = 'core.User'

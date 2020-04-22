@@ -1,103 +1,68 @@
 from django import forms
+from django.conf import settings
+from django.forms import TextInput, Select
 from cities_light.models import Country, Region, City
 from django.contrib.auth.forms import UserCreationForm
-from .models import Profile, User
+from .models import User, CheckoutInfo, Item
+from django.contrib.auth.forms import UserCreationForm
 import json as json
 
 PAYMENT_CHOICES = (
     ('S', 'Stripe'),
-    ('P', 'PayPal')
+    ('P', 'PayPal'),
+    ('C', 'Credit card')
 )
 
 
-def init():
+class CheckoutForm(forms.ModelForm):
+    class Meta:
+        model = CheckoutInfo
+        exclude = ['user']
+        widgets = {
+            'first_name': TextInput(attrs={'id': 'first_name', 'class': 'form-control'}),
+            'last_name': TextInput(attrs={'id': 'last_name', 'class': 'form-control'}),
+            'email': TextInput(attrs={'id': 'email', 'class': 'form-control py-0', 'placeholder': 'local-part@domain'}),
+            'first_address': TextInput(attrs={'id': 'first_address', 'class': 'form-control'}),
+            'billing_address': TextInput(attrs={'id': 'billing_address', 'class': 'form-control'}),
+            'country': Select(attrs={'class': 'custom-select d-block w-100'}),
+            'region': Select(attrs={'class': 'custom-select d-block w-100'}),
+            'city': Select(attrs={'class': 'custom-select d-block w-100'}),
+            'zip_code': TextInput(attrs={'id': 'zip_code', 'class': 'form-control'}),
+        }
 
-    dict_countries = []
-    list_countries = []
-    for country in Country.objects.all():
-        dict_countries.append(str(country))
-        list_countries.append((str(country), str(country)))
-
-    dict_regions = {}
-    list_regions = []
-    for region in Region.objects.all():
-        if region.country:
-            if region.country.name in dict_regions:
-                dict_regions[region.country.name].append(region.name)
-            else:
-                dict_regions[region.country.name] = [region.name]
-            list_regions.append((region.name, region.name))
-
-    dict_cities = {}
-    list_cities = []
-    for city in City.objects.all():
-        if city.region:
-            if city.region.name in dict_cities:
-                dict_cities[city.region.name].append(city.name)
-            else:
-                dict_cities[city.region.name] = [city.name]
-            list_cities.append((city.name, city.name))
-
-    return (dict_countries, list_countries, dict_regions, list_regions, dict_cities, list_cities)
-
-
-class CheckoutForm(forms.Form):
-    dict_countries, list_countries, dict_regions, list_regions, dict_cities, list_cities = init()
-
-    firstName = forms.CharField(widget=forms.TextInput(attrs={
-        'id': 'firstName',
-        'class': 'form-control'
+    same_billing_address = forms.BooleanField(widget=forms.CheckboxInput(attrs={
+        'id': 'same_billing_address',
+        'class': 'custom-control-input'
     }))
-    lastName = forms.CharField(widget=forms.TextInput(attrs={
-        'id': 'lastName',
-        'class': 'form-control'
+    save_info = forms.BooleanField(widget=forms.CheckboxInput(attrs={
+        'id': 'save_info',
+        'class': 'custom-control-input'
     }))
-    userName = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control py-0',
-        'placeholder': 'Username'
-    }))
-    email = forms.EmailField(widget=forms.TextInput(attrs={
-        'id': 'email',
-        'class': 'form-control',
-        'placeholder': 'youremail@example.com'
-    }))
-    address = forms.CharField(widget=forms.TextInput(attrs={
-        'id': 'address',
-        'class': 'form-control',
-        'placeholder': '1234 Main St'
-    }))
-    address2 = forms.CharField(required=False, widget=forms.TextInput(attrs={
-        'id': 'address-2',
-        'class': 'form-control',
-        'placeholder': 'Apartment or suite'
-    }))
-    country = forms.ChoiceField(choices=(list_countries), widget=forms.Select(attrs={
-        'class': 'custom-select d-block w-100'
-    }))
-    region = forms.ChoiceField(choices=(list_regions), widget=forms.Select(attrs={
-        'class': 'custom-select d-block w-100'
-    }))
-    city = forms.ChoiceField(choices=(list_cities), widget=forms.Select(attrs={
-        'class': 'custom-select d-block w-100'
-    }))
-    zip = forms.CharField()
-    sameBillingAddress = forms.BooleanField(widget=forms.CheckboxInput())
-    saveInfo = forms.BooleanField(widget=forms.CheckboxInput())
-    paymentOption = forms.ChoiceField(
-        widget=forms.RadioSelect(), choices=PAYMENT_CHOICES)
-
-    countries = json.dumps(dict_countries)
-    regions = json.dumps(dict_regions)
-    cities = json.dumps(dict_cities)
+    payment_option = forms.ChoiceField(
+        choices=PAYMENT_CHOICES, widget=forms.RadioSelect)
 
 
-class RegisterForm(UserCreationForm):
-    first_name = forms.CharField(max_length=100, help_text='First Name')
-    last_name = forms.CharField(max_length=100, help_text='Last Name')
-    email = forms.EmailField(max_length=150, help_text='Email')
-    type = forms.ChoiceField(choices=Profile.ACCOUNT_TYPE_CHOICES)
+class CustomUserCreationForm(UserCreationForm):
+    user_type = forms.ChoiceField(choices=User.TYPE_CHOICES, label='User Type')
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name',
-                  'email', 'password1', 'password2', 'type')
+        fields = ('first_name', 'last_name', 'username',
+                  'email', 'user_type', 'password1', 'password2')
+
+        def signup(self, request, user):
+            pass
+
+
+class ItemForm(forms.ModelForm):
+    img = forms.ImageField(help_text="Upload image: ", required=True)
+    name = forms.CharField(max_length=100, help_text='title')
+    category = forms.ChoiceField(
+        choices=Item._meta.get_field('category').choices)
+    description = forms.CharField(max_length=1000)
+    price = forms.DecimalField(max_digits=7, decimal_places=2)
+    unit = forms.ChoiceField(choices=Item._meta.get_field('unit').choices)
+
+    class Meta:
+        model = Item
+        fields = ['name', 'description', 'category', 'price', 'img', 'unit']

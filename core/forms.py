@@ -8,9 +8,8 @@ from django.contrib.auth.forms import UserCreationForm
 import json as json
 
 PAYMENT_CHOICES = (
-    ('S', 'Stripe'),
-    ('P', 'PayPal'),
-    ('C', 'Credit card')
+    ('sripe', 'stripe'),
+    ('paypal', 'paypal')
 )
 
 
@@ -29,6 +28,10 @@ class CheckoutForm(forms.ModelForm):
             'city': Select(attrs={'class': 'custom-select d-block w-100'}),
             'zip_code': TextInput(attrs={'id': 'zip_code', 'class': 'form-control'}),
         }
+    PAYMENT_CHOICES = (
+        ('S', 'Stripe'),
+        ('P', 'PayPal')
+    )
 
     same_billing_address = forms.BooleanField(widget=forms.CheckboxInput(attrs={
         'id': 'same_billing_address',

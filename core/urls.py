@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    HomeView,
+    # HomeView,
     ItemView,
     OrderSummaryView,
     CheckoutView,
@@ -13,13 +13,15 @@ from .views import (
     get_countries,
     get_regions,
     get_cities,
-    add_post
+    add_post,
+    tmp,
+    items_view
 )
 
 
 app_name = 'core'
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
+    path('', items_view, name='home'),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
     path('item/<pk>/', ItemView.as_view(), name='item'),
     path('order_summary/', OrderSummaryView.as_view(), name='order_summary'),
@@ -32,5 +34,6 @@ urlpatterns = [
     path('get_countries/', get_countries, name='get_countries'),
     path('get_regions/', get_regions, name='get_regions'),
     path('get_cities/', get_cities, name='get_cities'),
-    path('add_post/', add_post, name='add_post')
+    path('add_post/', add_post, name='add_post'),
+    path('tmp/', tmp, name='tmp'),
 ]

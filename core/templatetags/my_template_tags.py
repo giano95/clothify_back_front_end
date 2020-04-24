@@ -14,11 +14,6 @@ def define_url(url=None):
     return reverse(url)
 
 
-@register.simple_tag
-def define_url(url=None):
-    return reverse(url)
-
-
 @register.filter
 def cart_item_count(user):
     if user.is_authenticated:

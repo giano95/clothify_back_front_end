@@ -45,11 +45,10 @@
           </ul>
           <!-- Links -->
 
-          <form class="form-inline">
-            <div class="md-form my-0">
-              <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            </div>
-          </form>
+          <div class="md-form my-0">
+            <input id="user-input" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+          </div>
+
         </div>
         <!-- Collapsible content -->
 
@@ -57,59 +56,7 @@
       <!--/.Navbar-->
 
       <!--Section: Products v.3-->
-      <section class="text-center mb-4">
-
-        <!--Grid row-->
-        <div class="row wow fadeIn">
-
-          {% for item in object_list %}
-          <!--Grid column-->
-          <div class="col-lg-3 col-md-6 mb-4">
-
-            <!--Card-->
-            <div class="card">
-
-              <!--Card image-->
-              <div class="view overlay zoom">
-                <img src="{{ item.img.url }}" class="card-img-top" alt="zoom">
-                <a href="{{ item.get_url }}">
-                  <div class="mask rgba-white-slight"></div>
-                </a>
-              </div>
-              <!--Card image-->
-
-              <!--Card content-->
-              <div class="card-body text-center">
-                <!--Category & Title-->
-                <h5 class="grey-text">{{ item.get_category_display }}</h5>
-                <h5>
-                  <strong>
-                    <a href="{{ item.get_url }}" class="dark-grey-text">{{ item.name }}
-                      {% if item.label %}
-                      <span class="badge badge-pill {{ item.get_label_color_display }}">{{ item.label }}</span>
-                      {% endif %}
-                    </a>
-                  </strong>
-                </h5>
-
-                <h4 class="font-weight-bold blue-text">
-                  <strong>
-                    {{ item.get_price }} $
-                  </strong>
-                </h4>
-
-              </div>
-              <!--Card content-->
-
-            </div>
-            <!--Card-->
-
-          </div>
-          <!--Grid column-->
-          {% endfor %}
-        </div>
-        <!--Grid row-->
-      </section>
+      {% include 'items-results-partial.html' %}
       <!--Section: Products v.3-->
 
       <!--Pagination-->
@@ -158,5 +105,46 @@
 <script type="text/javascript">
   var element = document.getElementById("home");
   element.classList.add("active");
+</script>
+<script type="text/javascript">
+  const user_input = $('#user-input')
+  const items_div = $('#replaceable-content')
+  const endpoint = ''
+  const delay_by_in_ms = 500
+  let scheduled_function = false
+
+  let ajax_call = function (endpoint, request_parameters) {
+    $.getJSON(endpoint, request_parameters)
+      .done(response => {
+
+        // fade out the items_div, then:
+        items_div.fadeTo('slow', 0).promise().then(() => {
+          // replace the HTML contents
+          items_div.html(response['html_from_view'])
+          // fade-in the div with new contents
+          items_div.fadeTo('slow', 1)
+          // stop animating search icon
+          search_icon.removeClass('blink')
+        })
+      })
+  }
+
+
+  user_input.on('keyup', function () {
+
+    const request_parameters = {
+      q: $(this).val() // value of user_input: the HTML element with ID user-input
+    }
+
+
+    // if scheduled_function is NOT false, cancel the execution of the function
+    if (scheduled_function) {
+      clearTimeout(scheduled_function)
+    }
+
+    // setTimeout returns the ID of the function to be executed
+    scheduled_function = setTimeout(ajax_call, delay_by_in_ms, endpoint, request_parameters)
+  })
+
 </script>
 {% endblock extra_scripts %}

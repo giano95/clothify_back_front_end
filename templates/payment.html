@@ -28,6 +28,12 @@
 
                     <!--Card-->
                     <div class="card">
+                        <!--Card content-->
+                    </div>
+                    <!--/.Card-->
+
+                    <!--Card-->
+                    <div class="card">
 
                         <!--Card content-->
 
@@ -130,8 +136,12 @@
     var response = fetch('/secret/').then(function (response) {
         return response.json();
     }).then(function (responseJson) {
-        window.clientSecret = responseJson.client_secret;
-        //stripe.confirmCardPayment(clientSecret)
+        if (responseJson.clientSecret == 'error') {
+            const displayError = document.getElementById('card-errors')
+            displayError.textContent = 'You don\'t have any order to pay for'
+        } else {
+            window.clientSecret = responseJson.client_secret;
+        }
     });
 
     // Set your publishable key: remember to change this to your live publishable key in production
@@ -183,6 +193,7 @@
                     // execution. Set up a webhook or plugin to listen for the
                     // payment_intent.succeeded event that handles any business critical
                     // post-payment actions.
+                    window.location.replace("{% url 'core:home' %}");
                 }
             }
         });

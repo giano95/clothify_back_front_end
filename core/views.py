@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
 from django.contrib import messages
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import auth
@@ -12,6 +12,9 @@ from password_generator import PasswordGenerator
 from django.contrib.auth.models import Group
 from django.db.models.signals import post_save
 from django.contrib.auth.decorators import permission_required
+from django.template.loader import render_to_string
+import operator
+from functools import reduce
 
 from .models import CheckoutInfo, Item, OrderItem, Order, User
 from .forms import CheckoutForm, ItemForm
@@ -23,7 +26,7 @@ import json
 
 # Set your secret key. Remember to switch to your live secret key in production!
 # See your keys here: https://dashboard.stripe.com/account/apikeys
-stripe_key = stripe.api_key = 'sk_test_Serg3AwZr2ANOTEhDS7rGbEb00MsOgU1oX'
+stripe.api_key = 'sk_test_Serg3AwZr2ANOTEhDS7rGbEb00MsOgU1oX'
 
 # Unique, not guessable value used to prevent CSRF attacks
 pwo = PasswordGenerator()
@@ -68,7 +71,6 @@ def handle_oauth_redirect(request):
     connected_account_id = response['stripe_user_id']
     request.user.connected_account_id = connected_account_id
     request.user.save()
-    print("Connected account ID: ", connected_account_id)
 
     # Render some HTML or redirect to a different page.
     messages.success(request, 'redirection handled successfully')
@@ -78,20 +80,81 @@ def handle_oauth_redirect(request):
 @login_required
 def secret(request):
 
+    order = Order.objects.filter(
+        user=request.user,
+        is_ordered=False
+    )
+    order_items = OrderItem.objects.filter(
+        user=request.user,
+        is_ordered=False
+    )
+    if not order.exists() or not order_items.exists():
+        print('order_error or order_items_error')
+        return JsonResponse({'client_secret': 'error'})
+
+    order = order[0]
+    order_items = order_items[0]
+    connected_account_id = order_items.item.owner.connected_account_id
+
+    if connected_account_id is None:
+        print('connected_account_id_error')
+        return JsonResponse({'client_secret': 'error'})
+
+    amount = round(order.get_total_order_price() * 100.0)
+    application_fee_amount = round(0.123 * amount)
+    print(amount)
+    print(application_fee_amount)
+
     intent = stripe.PaymentIntent.create(
         payment_method_types=['card'],
-        amount=1599,
+        amount=amount,
         currency='eur',
-        # Verify your integration in this guide by including this parameter
-        metadata={'integration_check': 'accept_a_payment'},
+        application_fee_amount=application_fee_amount,
+        transfer_data={
+            'destination': connected_account_id,
+        }
     )
     return JsonResponse({'client_secret': intent.client_secret})
 
 
-class HomeView(ListView):
+""" class HomeView(ListView):
     model = Item
     paginate_by = 4
     template_name = 'home.html'
+
+    def get_queryset(self):
+        result = super(HomeView, self).get_queryset()
+
+        query = self.request.GET.get('q')
+        if query:
+            query = Item.objects.filter(name__icontains=query)
+            result = query
+        return result """
+
+
+def items_view(request):
+
+    ctx = {}
+    url_parameter = request.GET.get("q")
+
+    if url_parameter:
+        items = Item.objects.filter(name__icontains=url_parameter)
+    else:
+        items = Item.objects.all()
+
+    ctx["items"] = items
+
+    if request.is_ajax():
+        html = render_to_string(
+            template_name="items-results-partial.html",
+            context={"items": items}
+        )
+
+        data_dict = {"html_from_view": html}
+
+        return JsonResponse(data=data_dict, safe=False)
+
+    return render(request, 'home.html', context=ctx)
 
 
 class OrderSummaryView(LoginRequiredMixin, View):
@@ -133,13 +196,13 @@ class CheckoutView(View):
         form.save_m2m()
         order.checkout_info = checkout_info
         order.save()
-        return redirect('core:checkout')
+        return redirect('core:payment', payment_option=form.cleaned_data['payment_option'])
 
 
 class PaymentView(View):
 
     def get(self, *args, **kwargs):
-        return render(self.request, "payment.html")
+        return render(self.request, "payment.html", context={})
 
 
 @login_required
@@ -269,3 +332,7 @@ def set_group(sender, instance, **kwargs):
 
 
 post_save.connect(set_group, sender=User)
+
+
+def tmp(request):
+    return render(request, "tmp/home.html", context={})

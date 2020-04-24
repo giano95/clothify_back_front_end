@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'cities_light',
     'stripe',
+    'djstripe',
 ]
 
 MIDDLEWARE = [
@@ -110,3 +111,16 @@ USE_DJANGO_JQUERY = True
 
 # used to override the django user model
 AUTH_USER_MODEL = 'core.User'
+
+# dj-stripe stuff
+STRIPE_LIVE_PUBLIC_KEY = os.environ.get(
+    "STRIPE_LIVE_PUBLIC_KEY", "<your publishable key>")
+STRIPE_LIVE_SECRET_KEY = os.environ.get(
+    "STRIPE_LIVE_SECRET_KEY", "<your secret key>")
+STRIPE_TEST_PUBLIC_KEY = os.environ.get(
+    "STRIPE_TEST_PUBLIC_KEY", "pk_test_TdGOpdYCABUJprWUIHJEnwxs00TVEej5Xv")
+STRIPE_TEST_SECRET_KEY = os.environ.get(
+    "STRIPE_TEST_SECRET_KEY", "sk_test_Serg3AwZr2ANOTEhDS7rGbEb00MsOgU1oX")
+STRIPE_LIVE_MODE = False  # Change to True in production
+# Get it from the section in the Stripe dashboard where you added the webhook endpoint
+DJSTRIPE_WEBHOOK_SECRET = "whsec_xxx"

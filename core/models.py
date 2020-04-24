@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.core.exceptions import ObjectDoesNotExist
-from picklefield.fields import PickledObjectField
 from django.contrib.auth.models import AbstractUser
 
 
@@ -66,10 +65,6 @@ class CheckoutInfo(models.Model):
 class PostManager(models.Manager):
     def search(self, **kwargs):
         qs = super().get_queryset()
-
-        # TODO:
-        # Split query into words, case insensitive search each field:
-        # owner name, title, body, tags, location
 
         if 'query' in kwargs:
             query = kwargs['query']

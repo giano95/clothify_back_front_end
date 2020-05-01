@@ -1,0 +1,612 @@
+{% extends "base-carousel.html" %}
+
+{% load staticfiles %}
+{% load my_template_tags %}
+
+{% block head_title %}Clothify{% endblock %}
+
+{% block content %}
+
+<style>
+    a.card-link-secondary:hover,
+    a.card-link-secondary:active {
+        color: #4285f4 !important;
+    }
+
+    a.card-link-secondary {
+        font-size: 1.1em !important;
+        font-weight: 350;
+    }
+
+    p.mb-2 {
+        margin-bottom: 0.9em !important;
+    }
+
+    label.pl-4-5 {
+        padding-left: 2.2em !important;
+    }
+
+    h5.text-black {
+        color: black !important;
+    }
+</style>
+
+<!--Main layout-->
+<main>
+    <div id="anchor" class="container">
+
+        <!--Grid row-->
+        <div class="row mt-5">
+
+            <!--Grid column-->
+            <div class="col-md-4 mb-4">
+
+                <!-- Section: Sidebar -->
+                <section>
+
+                    <!-- Section: Categories -->
+                    <section class="mb-5">
+
+                        <h3 class="font-roboto-bold mb-3"><i class="fas fa-angle-right "></i> Categories</h3>
+
+                        <div class="font-roboto">
+
+                            {% for category in categories %}
+
+                            <div class="form-check pl-0 mb-3">
+                                <input type="radio" class="category-radio form-check-input" id="{{ category.name }}"
+                                    name="CategoryRadios" {% if category_name == category.name %}checked{% endif %}>
+                                <label class="form-check-label font-roboto card-link-secondary"
+                                    for="{{ category.name }}">{{ category.name }}</label>
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+                    <!-- Section: Categories -->
+
+                    <!-- Section: Filters -->
+                    <section class="mb-5">
+
+                        <h3 class="font-roboto-bold mb-4"><i class="fas fa-angle-right "></i> Filters</h3>
+
+                        <form id="query-text-form" action="#anchor" method="get" accept-charset="utf-8">
+                            <div class="md-form md-outline mt-0 d-flex justify-content-between align-items-center">
+
+                                <input id="query_text" class="form-control mb-0 font-roboto" type="text"
+                                    name="query_text" value="{% if query_text %}{{ query_text }}{% endif %}"
+                                    aria-label="Search" placeholder="Search...">
+
+                                <button class="btn btn-flat btn-md px-3 waves-effect">
+                                    <i class="fas fa-search fa-lg"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                    </section>
+                    <!-- Section: Filters -->
+
+                    <!-- Section: Average -->
+                    <section class="mb-5">
+
+                        <h3 class="font-roboto-bold mb-4"><i class="fas fa-angle-right "></i> Reviews</h3>
+
+
+                        <ul class="rating">
+                            <li>
+                                <a>
+                                    <i id="one-star"
+                                        class="{% if reviews_vote >= 1 %}fas{% else %}far{% endif %} fa-star fa-lg text-primary"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    <i id="two-star"
+                                        class="{% if reviews_vote >= 2 %}fas{% else %}far{% endif %} fa-star fa-lg text-primary"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    <i id="three-star"
+                                        class="{% if reviews_vote >= 3 %}fas{% else %}far{% endif %} fa-star fa-lg text-primary"></i>
+
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    <i id="four-star"
+                                        class="{% if reviews_vote >= 4 %}fas{% else %}far{% endif %} fa-star fa-lg text-primary"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    <i id="five-star"
+                                        class="{% if reviews_vote >= 5 %}fas{% else %}far{% endif %} fa-star fa-lg text-primary"></i>
+                                </a>
+                            </li>
+
+                        </ul>
+
+
+                    </section>
+                    <!-- Section: Average -->
+
+                    <!-- Section: Price -->
+                    <section class="mb-5">
+
+                        <h3 class="font-roboto-bold mb-4"><i class="fas fa-angle-right "></i> Price</h3>
+
+                        <div class="form-check pl-0 mb-3">
+                            <input type="radio" class="form-check-input" id="under50" name="PriceRadios"
+                                {% if not from_price and to_price == 50 %}checked{% endif %}>
+                            <label class="form-check-label font-roboto card-link-secondary" for="under50">Under
+                                $50</label>
+                        </div>
+
+                        <div class="form-check pl-0 mb-3">
+                            <input type="radio" class="form-check-input" id="50to100" name="PriceRadios"
+                                {% if from_price == 50 and to_price == 100 %}checked{% endif %}>
+                            <label class="form-check-label font-roboto card-link-secondary" for="50to100">$50
+                                to $100</label>
+                        </div>
+
+                        <div class="form-check pl-0 mb-3">
+                            <input type="radio" class="form-check-input" id="100to200" name="PriceRadios"
+                                {% if from_price == 100 and to_price == 200 %}checked{% endif %}>
+                            <label class="form-check-label font-roboto card-link-secondary" for="100to200">$100
+                                to $200</label>
+                        </div>
+                        <div class="form-check pl-0 mb-3">
+                            <input type="radio" class="form-check-input" id="200to500" name="PriceRadios"
+                                {% if from_price == 200 and to_price == 500 %}checked{% endif %}>
+                            <label class="form-check-label font-roboto card-link-secondary" for="200to500">$200
+                                to
+                                $500</label>
+                        </div>
+
+                        <div class="form-check pl-0 mb-3">
+                            <input type="radio" class="form-check-input" id="above500" name="PriceRadios"
+                                {% if from_price == 500 and not to_price %}checked{% endif %}>
+                            <label class="form-check-label font-roboto card-link-secondary" for="above500">Above
+                                $500</label>
+                        </div>
+
+                        <form action="#anchor" method="get" accept-charset="utf-8">
+                            <div class="d-flex align-items-center mt-4 pb-1">
+                                <div class="md-form md-outline my-0">
+                                    <input id="from" type="text" class="form-control mb-0" name="from_price"
+                                        value="{% if from_price %}{{ from_price }}{% endif %}">
+                                    <label for="from"> Min</label>
+                                </div>
+                                <p class="px-2 mb-0 text-muted"></p>
+                                <div class="md-form md-outline my-0">
+                                    <input id="to" type="text" class="form-control mb-0" name="to_price"
+                                        value="{% if to_price %}{{ to_price }}{% endif %}">
+                                    <label for="to"> Max</label>
+                                </div>
+                                <button class="btn btn-flat btn-md px-3 waves-effect">
+                                    <i class="fas fa-search fa-lg"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                    </section>
+                    <!-- Section: Price -->
+
+                    <!-- Section: Color -->
+                    <section class="mb-5">
+
+                        <h3 class="font-roboto-bold mb-4"><i class="fas fa-angle-right "></i> Color</h3>
+
+                        <div class="btn-group btn-group-toggle btn-color-group d-block mt-n2 ml-n2"
+                            data-toggle="buttons">
+
+                            {% for color in colors %}
+                            <label
+                                class="btn rounded-circle {{ color }} border-inset-grey p-3 m-2 waves-effect waves-light">
+                                <input id="{{ color }}" class="color-checkbox" type="checkbox" autocomplete="off"
+                                    {% if color in colors_name %}checked{% endif %}>
+                            </label>
+
+                            {% endfor %}
+                        </div>
+
+                    </section>
+                    <!-- Section: Color -->
+
+                    <!-- Section: Size -->
+                    <section class="mb-5">
+
+                        <h3 class="font-roboto-bold mb-4"><i class="fas fa-angle-right "></i> Size</h3>
+
+                        {% for size in sizes %}
+
+                        <div class="form-check pl-0 mb-3">
+                            <input type="checkbox" class="size-checkbox form-check-input filled-in" id="{{size}}"
+                                {% if size in sizes_tag %}checked{% endif %}>
+                            <label class="form-check-label font-roboto card-link-secondary"
+                                for="{{size}}">{{size}}</label>
+                        </div>
+
+                        {% endfor %}
+
+                    </section>
+                    <!-- Section: Size -->
+
+                </section>
+                <!-- Section: Sidebar -->
+
+            </div>
+            <!--Grid column-->
+
+            <!--Grid column-->
+            <div class="col-md-8 mb-4">
+
+                {% if items %}
+
+                <!-- Section: Block Content -->
+                <section class="mb-3">
+
+                    <div class="row d-flex justify-content-around align-items-center">
+
+                        <div class="col-12 col-md-3 text-center text-md-left">
+                            <a href="" class="text-reset"><i class="fas fa-th-list fa-lg mr-1"></i></a>
+                            <a href="" class="text-reset"><i class="fas fa-th-large fa-lg"></i></a>
+                        </div>
+
+                        <div class="col-12 col-md-4 text-center">
+                            <!-- S P A C I N G -->
+                        </div>
+
+                        <div class="col-12 col-md-5">
+                            <div class="d-flex flex-wrap">
+                                <div class="select-outline position-relative w-100">
+                                    <div class="select-wrapper mdb-select md-outline md-form"><span
+                                            class="caret">▼</span><input type="text"
+                                            class="select-dropdown form-control" readonly="true" required="false"
+                                            data-activates="select-options-d656ca36-3b58-4fc3-84f5-4b8cf5f3c6eb"
+                                            value="" role="combobox" aria-multiselectable="false" aria-disabled="false"
+                                            aria-required="false" aria-haspopup="true" aria-expanded="false">
+                                        <ul id="select-options-d656ca36-3b58-4fc3-84f5-4b8cf5f3c6eb"
+                                            class="dropdown-content select-dropdown w-100 " style="display: none;"><span
+                                                class="search-wrap ml-2" role="searchbox">
+                                                <div class="md-form mt-0"><input type="text"
+                                                        class="search w-100 d-block " tabindex="-1"
+                                                        placeholder="Search here.."></div>
+                                            </span>
+                                            <li class="disabled active " role="option" aria-selected="true"
+                                                aria-disabled="true"><span class="filtrable "> Choose category </span>
+                                            </li>
+                                            <li class="  " role="option" aria-selected="false" aria-disabled="false">
+                                                <span class="filtrable "> Category 1 </span></li>
+                                            <li class="  " role="option" aria-selected="false" aria-disabled="false">
+                                                <span class="filtrable "> Category 2 </span></li>
+                                            <li class="  " role="option" aria-selected="false" aria-disabled="false">
+                                                <span class="filtrable "> Category 3 </span></li>
+                                            <li class="  " role="option" aria-selected="false" aria-disabled="false">
+                                                <span class="filtrable "> Category 4 </span></li>
+                                            <li class="  " role="option" aria-selected="false" aria-disabled="false">
+                                                <span class="filtrable "> Category 5 </span></li><button
+                                                class="btn-save btn btn-primary btn-sm mt-2 waves-effect waves-light">Save</button>
+                                        </ul><select class="mdb-select md-outline md-form initialized"
+                                            searchable="Search here..">
+                                            <option value="" disabled="" selected="">Choose category</option>
+                                            <option value="1">Category 1</option>
+                                            <option value="2">Category 2</option>
+                                            <option value="3">Category 3</option>
+                                            <option value="4">Category 4</option>
+                                            <option value="5">Category 5</option>
+                                        </select><button
+                                            class="btn-save btn btn-primary btn-sm mt-2 waves-effect waves-light">Save</button>
+                                    </div>
+                                    <label>Label example</label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+                <!-- Section: Block Content -->
+
+                <!--Section: Block Content-->
+                <section>
+
+                    <!-- Grid row -->
+                    <div class="row">
+
+                        {% for item in items %}
+
+                        <!-- Grid column -->
+                        <div class="col-md-4 mb-5">
+
+                            <!-- Card -->
+                            <div class="card card-cascade zoom">
+
+                                <div class="view view-cascade overlay rounded z-depth-2">
+                                    <img class="img-fluid w-100 hoverable" src="{{  item.img.url  }}" alt="Sample">
+                                    {% if item.label %}
+                                    <h5 class="mb-0"><span
+                                            class="badge {{ item.label.color}} font-roboto badge-pill badge-news">{{ item.label.tag }}</span>
+                                    </h5>
+                                    {% endif %}
+                                    <a href="{{ item.get_url }}">
+                                        <div class="mask waves-effect waves-light">
+                                            <div class="mask rgba-black-slight waves-effect waves-light"></div>
+                                        </div>
+                                    </a>
+                                </div>
+
+                                <div class="card-body card-body-cascade text-center pt-3 pb-0">
+
+                                    <h5 class="font-roboto text-black">{{ item.name }}</h5>
+                                    <p>
+                                        <span class="text-primary mr-1"><strong>${{ item.price }}</strong></span>
+                                        {% if item.not_discounted_price %}
+                                        <span
+                                            class="text-grey"><small></strong><s>${{ item.not_discounted_price }}</s></small></span>
+                                        {% endif %}
+                                    </p>
+
+                                </div>
+
+                            </div>
+                            <!-- Card -->
+
+                        </div>
+                        <!-- Grid column -->
+
+                        {% endfor %}
+
+                    </div>
+                    <!-- Grid row -->
+
+                </section>
+                <!--Section: Block Content-->
+
+                <!-- Section: Block Content -->
+                <section>
+
+                    <div class="row d-flex justify-content-around align-items-center">
+
+                        <div class="col-12 col-md-4">
+                            <!-- SPACING -->
+                        </div>
+
+                        <div class="col-12 col-md-4 text-center">
+
+                            <!--Pagination-->
+                            {% if is_paginated %}
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination pagination-circle justify-content-center float-md-right mb-0">
+
+                                    <!--Arrow left-->
+                                    {% if page_obj.has_previous %}
+
+                                    <li class="page-item">
+                                        <a class="page-link waves-effect waves-effect"
+                                            href="?page={{ page_obj.previous_page_number }}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+
+                                    {% endif %}
+
+                                    {% for i in page_obj.paginator.page_range %}
+
+                                    <li class="page-item {% if i == page_obj.number %}active{% endif %}">
+                                        <a class="page-link waves-effect waves-effect" href="?page={{ i }}">{{i}}</a>
+                                    </li>
+
+                                    {% endfor %}
+
+                                    <!--Arrow right-->
+                                    {% if page_obj.has_next %}
+
+                                    <li class="page-item">
+                                        <a class="page-link waves-effect waves-effect"
+                                            href="?page={{ page_obj.next_page_number }}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            <!--Pagination-->
+
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <!-- SPACING -->
+                        </div>
+
+                    </div>
+
+                </section>
+                <!-- Section: Block Content -->
+
+                {% else %}
+
+                <h1 class="text-center">No Item found :(</h1>
+
+                {% endif %}
+
+            </div>
+            <!--Grid column-->
+
+        </div>
+        <!--Grid row-->
+
+    </div>
+</main>
+<!--Main layout-->
+
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script text="text/javascript">
+
+    var delay = 500
+    var colors_name = ''
+    var sizes_tag = ''
+
+    function redirect(url) {
+        $(window.location).attr('href', url)
+    }
+
+    $('.category-radio').on('click', function () {
+        setTimeout(redirect, delay, '?category_name=' + $(this).attr('id') + '#anchor')
+    })
+    $('#one-star').on('click', function () {
+        setTimeout(redirect, delay, '?reviews_vote=1#anchor')
+    })
+    $('#two-star').on('click', function () {
+        setTimeout(redirect, delay, '?reviews_vote=2#anchor')
+    })
+    $('#three-star').on('click', function () {
+        setTimeout(redirect, delay, '?reviews_vote=3#anchor')
+    })
+    $('#four-star').on('click', function () {
+        setTimeout(redirect, delay, '?reviews_vote=4#anchor')
+    })
+    $('#five-star').on('click', function () {
+        setTimeout(redirect, delay, '?reviews_vote=5#anchor')
+    })
+    $('#under50').on('click', function () {
+        setTimeout(redirect, delay, '?to_price=50#anchor')
+    })
+    $('#50to100').on('click', function () {
+        setTimeout(redirect, delay, '?from_price=50&to_price=100#anchor')
+    })
+    $('#100to200').on('click', function () {
+        setTimeout(redirect, delay, '?from_price=100&to_price=200#anchor')
+    })
+    $('#200to500').on('click', function () {
+        setTimeout(redirect, delay, '?from_price=200&to_price=500#anchor')
+    })
+    $('#above500').on('click', function () {
+        setTimeout(redirect, delay, '?from_price=500#anchor')
+    })
+    $('.color-checkbox').map(function () {
+        if ($(this).is(":checked")) {
+
+            if (!colors_name.includes($(this).attr('id'))) {
+                colors_name += $(this).attr('id') + ','
+            }
+        }
+    })
+    $('.color-checkbox').click(function () {
+
+        if ($(this).is(":checked")) {
+            colors_name += $(this).attr('id') + ','
+            setTimeout(redirect, delay, '?colors_name=' + colors_name + '#anchor')
+
+        }
+        else if ($(this).is(":not(:checked)")) {
+            colors_name = colors_name.replace($(this).attr('id') + ',', '');
+            setTimeout(redirect, delay, '?colors_name=' + colors_name + '#anchor')
+
+        }
+    });
+    $('.size-checkbox').map(function () {
+        if ($(this).is(":checked")) {
+
+            if (!sizes_tag.includes($(this).attr('id'))) {
+                sizes_tag += $(this).attr('id') + ','
+            }
+        }
+    })
+    $('.size-checkbox').click(function () {
+
+        if ($(this).is(":checked")) {
+            sizes_tag += $(this).attr('id') + ','
+            setTimeout(redirect, delay, '?sizes_tag=' + sizes_tag + '#anchor')
+            console.log('ciao')
+
+        }
+        else if ($(this).is(":not(:checked)")) {
+            sizes_tag = sizes_tag.replace($(this).attr('id') + ',', '');
+            setTimeout(redirect, delay, '?sizes_tag=' + sizes_tag + '#anchor')
+
+        }
+    });
+
+    $('#under50').hover(
+        function () {
+            $(this).attr('checked', true);
+            console.log('ciao')
+
+        }, function () {
+            $(this).attr('checked', false);
+        }
+    );
+
+    var alreadyUp = false
+
+    function mouseIn(ids) {
+        if ($(ids).hasClass('fas')) {
+            alreadyUp = true
+        } else {
+            $(ids).removeClass('far')
+            $(ids).addClass('fas')
+        }
+    }
+
+    function mouseOut(ids) {
+        if (!alreadyUp) {
+            $(ids).removeClass('fas')
+            $(ids).addClass('far')
+        }
+        alreadyUp = false
+    }
+
+    $('#one-star').hover(
+        function () {
+            mouseIn('#one-star')
+
+        }, function () {
+            mouseOut('#one-star')
+        }
+    );
+
+    $('#two-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star')
+        }
+    );
+
+    $('#three-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star, #three-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star, #three-star')
+        }
+    );
+
+    $('#four-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star, #three-star, #four-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star, #three-star, #four-star')
+        }
+    );
+
+    $('#five-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star, #three-star, #four-star, #five-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star, #three-star, #four-star, #five-star')
+        }
+    );
+
+</script>
+
+{% endblock content %}

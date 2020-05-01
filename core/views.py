@@ -3,22 +3,24 @@ from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
 from django.contrib import messages
 from django.http import Http404, JsonResponse, HttpResponse
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import auth
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from password_generator import PasswordGenerator
 from django.contrib.auth.models import Group
 from django.db.models.signals import post_save
-from django.contrib.auth.decorators import permission_required
 from django.template.loader import render_to_string
-import operator
-from functools import reduce
+from django.db.models import Count
+from django.core.mail import send_mail, BadHeaderError
+from django.forms import modelformset_factory
+from django.template import RequestContext
 
-from .models import CheckoutInfo, Item, OrderItem, Order, User
-from .forms import CheckoutForm, ItemForm
+from core.models import User
+from core.forms import ContactForm, CheckoutForm
 from cities_light.models import Country, Region, City
+from item.models import Item, ItemCategory, ItemColor, ItemImage, ItemLabel, ItemReview, ItemSize
+
 
 import stripe
 import json
@@ -35,12 +37,186 @@ state = pwo.shuffle_password(
 
 # temporary fields
 client_id = 'ca_H86KCmvSbEJXwyLilNw2t3wV9a1jNDZW'
-suggested_capabilities = 'transfers'
-stripe_user = {'email': 'user@example.com'}
+
+
+def is_unsub_seller(user):
+    if user.groups.filter(name='UnsubSeller').exists() and user.get_user_type() == 'Seller':
+        return True
+    else:
+        return False
+
+
+def is_sub_seller(user):
+    if user.groups.filter(name='SubSeller').exists() and user.get_user_type() == 'Seller':
+        return True
+    else:
+        return False
+
+
+class ShopView(ListView):
+    model = Item
+    paginate_by = 9
+    context_object_name = 'items'
+    template_name = 'shop.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(ShopView, self).get_context_data(*args, **kwargs)
+
+        # set in the context the categories objects
+        context['categories'] = ItemCategory.objects.all()
+        context['colors'] = [color[0] for color in ItemColor.CHOICES]
+        context['sizes'] = [size[0] for size in ItemSize.CHOICES]
+
+        # if there are some url parameters also save them in the context
+        context['category_name'] = (
+            self.request.GET.get('category_name') or None)
+        context['query_text'] = (self.request.GET.get('query_text') or None)
+        reviews_vote = (self.request.GET.get('reviews_vote') or None)
+        if reviews_vote:
+            context['reviews_vote'] = int(reviews_vote)
+        from_price = (self.request.GET.get('from_price') or None)
+        if from_price:
+            context['from_price'] = int(from_price)
+        to_price = (self.request.GET.get('to_price') or None)
+        if to_price:
+            context['to_price'] = int(to_price)
+        colors_name = (self.request.GET.get('colors_name') or None)
+        if colors_name:
+            context['colors_name'] = colors_name.split(",")[:-1]
+        sizes_tag = (self.request.GET.get('sizes_tag') or None)
+        if sizes_tag:
+            context['sizes_tag'] = sizes_tag.split(",")[:-1]
+
+        return context
+
+    def get_queryset(self):
+        result = super(ShopView, self).get_queryset()
+
+        # Filter by the category
+        category_name = self.request.GET.get('category_name')
+        if category_name:
+            items = Item.objects.filter(category__name=category_name)
+            result = items
+
+        # Filter by the some query text
+        query_text = self.request.GET.get('query_text')
+        if query_text:
+            items = Item.objects.filter(name__icontains=query_text)
+            result = items
+
+        # Filter by the avg reviews vote
+        reviews_vote = self.request.GET.get('reviews_vote')
+        if reviews_vote:
+            items = []
+            for item in Item.objects.all():
+                if int(reviews_vote) == item.reviews_vote:
+                    items.append(item)
+            result = items
+
+        # Filter by the price
+        from_price = self.request.GET.get('from_price')
+        to_price = self.request.GET.get('to_price')
+        if from_price and to_price:
+            items = Item.objects.filter(
+                price__range=(int(from_price), int(to_price)))
+            result = items
+        elif from_price:
+            items = Item.objects.filter(price__gte=int(from_price))
+            result = items
+        elif to_price:
+            items = Item.objects.filter(price__lte=int(to_price))
+            result = items
+
+        # Filter by the colors
+        colors_name = (self.request.GET.get('colors_name') or None)
+        if colors_name:
+            colors_name = colors_name.split(",")[:-1]
+            for size in Item.objects.all().values_list('color'):
+                print(size)
+            items = Item.objects.all().filter(color__name__in=colors_name).distinct()
+            result = items
+
+        # Filter by the size
+        sizes_tag = (self.request.GET.get('sizes_tag') or None)
+        if sizes_tag:
+            sizes_tag = sizes_tag.split(",")[:-1]
+
+            items = Item.objects.all().filter(size__tag__in=sizes_tag).distinct()
+            result = items
+
+        return result
+
+
+class HomeView(ListView):
+    model = Item
+    paginate_by = 6
+    context_object_name = 'items'
+    template_name = 'home.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(HomeView, self).get_context_data(*args, **kwargs)
+        context['categories'] = ItemCategory.objects.all()
+        return context
+
+
+class CheckoutView(View):
+
+    def get(self, *args, **kwargs):
+        form = CheckoutForm()
+        return render(self.request, "checkout.html", {'form': form})
+
+    def post(self, *args, **kwargs):
+        form = CheckoutForm(self.request.POST or None)
+        order = Order.objects.filter(
+            user=self.request.user,
+            is_ordered=False
+        )
+        if not order.exists() or not form.is_valid():
+            print("Failed checkout")
+            return render(self.request, 'checkout.html', {'form': form})
+
+        order = order[0]
+        checkout_info = form.save(commit=False)
+        checkout_info.user = self.request.user
+        checkout_info.save()
+        form.save_m2m()
+        order.checkout_info = checkout_info
+        order.save()
+        return redirect('core:payment', payment_option=form.cleaned_data['payment_option'])
+
+
+class PaymentView(View):
+
+    def get(self, *args, **kwargs):
+        return render(self.request, "payment.html", context={})
+
+
+class ContactView(View):
+    def get(self, *args, **kwargs):
+        form = ContactForm()
+        return render(self.request, 'contact.html', {'form': form})
+
+    def post(self, *args, **kwargs):
+        form = ContactForm(self.request.POST or None)
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+            from_email = form.cleaned_data['form_email']
+            message = form.cleaned_data['message']
+            try:
+                send_mail(subject, message, from_email, [
+                          'marco.gianelli.95@gmail.com'])
+                messages.success(
+                    self.request, 'Success! Thank you for your message.')
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+            return redirect('core:contact')
+        else:
+            messages.warning(self.request, form.errors.as_data())
+        return render(self.request, 'contact.html', {'form': form})
 
 
 @login_required
-@permission_required('core.add_item', raise_exception=True)
+@user_passes_test(is_unsub_seller)
 def get_oauth_url(request):
     oauth_url = 'https://connect.stripe.com/express/oauth/authorize?' + \
         'client_id=' + 'ca_H86KCmvSbEJXwyLilNw2t3wV9a1jNDZW' + \
@@ -50,6 +226,11 @@ def get_oauth_url(request):
         '&stripe_user[first_name]=' + request.user.first_name + \
         '&stripe_user[last_name]=' + request.user.last_name
     return JsonResponse({'oauth_url': oauth_url})
+
+
+# A dummy url fo redirect the non seller who try to get the oauth url
+def dummy_url(request):
+    return JsonResponse({'error': '403 Forbidden: you are not a Seller'}, status=403)
 
 
 def handle_oauth_redirect(request):
@@ -68,9 +249,16 @@ def handle_oauth_redirect(request):
     except Exception as e:
         return JsonResponse({'error': 'An unknown error occurred.'}, status=500)
 
+    # Get the connected_account_id and save it
     connected_account_id = response['stripe_user_id']
     request.user.connected_account_id = connected_account_id
     request.user.save()
+
+    # Promote the user to a SubSeller
+    group = Group.objects.get(name='SubSeller')
+    request.user.groups.add(group)
+    group = Group.objects.get(name='UnsubSeller')
+    request.user.groups.remove(group)
 
     # Render some HTML or redirect to a different page.
     messages.success(request, 'redirection handled successfully')
@@ -117,190 +305,6 @@ def secret(request):
     return JsonResponse({'client_secret': intent.client_secret})
 
 
-""" class HomeView(ListView):
-    model = Item
-    paginate_by = 4
-    template_name = 'home.html'
-
-    def get_queryset(self):
-        result = super(HomeView, self).get_queryset()
-
-        query = self.request.GET.get('q')
-        if query:
-            query = Item.objects.filter(name__icontains=query)
-            result = query
-        return result """
-
-
-def items_view(request):
-
-    ctx = {}
-    url_parameter = request.GET.get("q")
-
-    if url_parameter:
-        items = Item.objects.filter(name__icontains=url_parameter)
-    else:
-        items = Item.objects.all()
-
-    ctx["items"] = items
-
-    if request.is_ajax():
-        html = render_to_string(
-            template_name="items-results-partial.html",
-            context={"items": items}
-        )
-
-        data_dict = {"html_from_view": html}
-
-        return JsonResponse(data=data_dict, safe=False)
-
-    return render(request, 'home.html', context=ctx)
-
-
-class OrderSummaryView(LoginRequiredMixin, View):
-    def get(self, *args, **kwargs):
-        order = Order.objects.filter(user=self.request.user, is_ordered=False)
-        if not order.exists():
-            messages.error(request, 'You doesn\'t have any active order')
-            return redirect('core:home')
-        else:
-            return render(self.request, 'order-summary.html', {'order': order[0]})
-
-
-class ItemView(DetailView):
-    model = Item
-    template_name = 'item.html'
-
-
-class CheckoutView(View):
-
-    def get(self, *args, **kwargs):
-        print(self.request.user.connected_account_id)
-        form = CheckoutForm()
-        return render(self.request, "checkout.html", {'form': form})
-
-    def post(self, *args, **kwargs):
-        form = CheckoutForm(self.request.POST or None)
-        order = Order.objects.filter(
-            user=self.request.user,
-            is_ordered=False
-        )
-        if not order.exists() or not form.is_valid():
-            messages.warning(self.request, "Failed checkout")
-            return render(self.request, 'checkout.html', {'form': form})
-
-        order = order[0]
-        checkout_info = form.save(commit=False)
-        checkout_info.user = self.request.user
-        checkout_info.save()
-        form.save_m2m()
-        order.checkout_info = checkout_info
-        order.save()
-        return redirect('core:payment', payment_option=form.cleaned_data['payment_option'])
-
-
-class PaymentView(View):
-
-    def get(self, *args, **kwargs):
-        return render(self.request, "payment.html", context={})
-
-
-@login_required
-@permission_required('core.add_item', raise_exception=True)
-def add_post(request):
-    form = ItemForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        item = form.save()
-        item.refresh_from_db()
-        item.owner = request.user
-        item.name = form.cleaned_data.get('name')
-        item.description = form.cleaned_data.get('description')
-        item.category = form.cleaned_data.get('category')
-        item.price = form.cleaned_data.get('price')
-        item.unit = form.cleaned_data.get('unit')
-        item.img = form.cleaned_data.get('img')
-        item.save()
-        messages.success(request, 'Post created!', extra_tags='fa fa-check')
-        return redirect(item.get_url())
-    else:
-        return render(request, 'post_form.html', {'form': form})
-    return render(request, 'post_form.html', {'form': form})
-
-
-@login_required
-def add_to_cart(request, pk):
-    item = Item.objects.filter(pk=pk)
-    if not item.exists():
-        messages.info(request, 'this item doesn\'t exists')
-        return redirect('core:item', pk=pk)
-    item = item[0]
-    order_item, _ = OrderItem.objects.get_or_create(
-        item=item,
-        user=request.user,
-        is_ordered=False
-    )
-    order = Order.objects.filter(
-        user=request.user,
-        is_ordered=False
-    )
-    if not order.exists():
-        order = Order.objects.create(
-            user=request.user,
-            ordered_date=timezone.now()
-        )
-        order.order_items.add(order_item)
-    else:
-        order = order[0]
-        if order.order_items.filter(item__pk=pk).exists():
-            order_item.quantity += 1
-            order_item.save()
-        else:
-            order.order_items.add(order_item)
-    messages.success(request, 'item added on the cart successfully')
-    return redirect('core:item', pk=pk)
-
-
-@login_required
-def update_cart(request, pk, q):
-    item = Item.objects.filter(pk=pk)
-    if not item.exists():
-        messages.warning(request, 'update_cart: item doesn\'t exists')
-        return redirect('core:order_summary')
-    item = item[0]
-
-    order_item = OrderItem.objects.filter(
-        item=item,
-        user=request.user,
-        is_ordered=False
-    )
-    if not order_item.exists():
-        messages.warning(request, 'update_cart: order_item doesn\'t exists')
-        return redirect('core:order_summary')
-    order_item = order_item[0]
-
-    order = Order.objects.filter(
-        user=request.user,
-        is_ordered=False
-    )
-    if not order.exists():
-        messages.warning(request, 'update_cart: order doesn\'t exists')
-        return redirect('core:order_summary')
-    order = order[0]
-
-    if not order.order_items.filter(item__pk=pk).exists():
-        messages.warning(
-            request, 'update_cart: order_item isn\'t in your cart')
-        return redirect('core:order_summary')
-
-    if q == '0':
-        order_item.delete()
-    else:
-        order_item.quantity = q
-        order_item.save()
-
-    return redirect('core:order_summary')
-
-
 def get_countries(request):
     countries = list(Country.objects.values_list(
         'name', flat=True).order_by('name'))
@@ -325,14 +329,16 @@ def get_cities(request):
 
 def set_group(sender, instance, **kwargs):
     group_name = instance.get_user_type()
-    if group_name != 'Buyer' and group_name != 'Seller':
+
+    # if the user already belogn to a group pass
+    if instance.groups.filter(name__in=['Buyer', 'UnsubSeller', 'SubSeller']).exists():
         return
-    group = Group.objects.get(name=group_name)
-    group.user_set.add(instance)
+    elif group_name == 'Buyer':
+        group = Group.objects.get(name='Buyer')
+        group.user_set.add(instance)
+    elif group_name == 'Seller':
+        group = Group.objects.get(name='UnsubSeller')
+        group.user_set.add(instance)
 
 
 post_save.connect(set_group, sender=User)
-
-
-def tmp(request):
-    return render(request, "tmp/home.html", context={})

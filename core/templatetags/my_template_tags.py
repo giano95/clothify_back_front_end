@@ -1,5 +1,5 @@
 from django import template
-from core.models import Order
+from order.models import Order
 from django.urls import reverse
 register = template.Library()
 

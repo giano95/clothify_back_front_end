@@ -16,6 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jquery',
     'core',
+    'item',
+    'order',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -93,11 +95,13 @@ AUTHENTICATION_BACKENDS = (
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGOUT_ON_GET = True  # logout immediatly without any intermediate page
 # ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 10
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 3600
 ACCOUNT_FORMS = {
     'signup': 'core.forms.CustomUserCreationForm',
+    'login': 'core.forms.CustomLoginForm'
 }
 # refer to this https://django-allauth.readthedocs.io/en/latest/faq.html#when-i-sign-up-i-run-into-connectivity-errors-connection-refused-et-al
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

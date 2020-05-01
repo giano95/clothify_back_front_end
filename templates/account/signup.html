@@ -1,33 +1,128 @@
-{% extends "account/base.html" %}
+{% extends "base-standard.html" %}
 
+{% load staticfiles %}
+{% load my_template_tags %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
 {% block head_title %}{% trans "Signup" %}{% endblock %}
 
 {% block content %}
+<style>
+    form.signup div.md-form input#id_password1 {
+        width: 100%;
+        height: 45px;
+        padding: 10px;
+    }
 
-<div class="container pt-7">
-  <section class="mb-4">
-    <div class="row wow fadeIn">
-      <div class="col-6 offset-3">
-        <h1>{% trans "Sign Up" %}</h1>
+    form.signup div.md-form input#id_password2 {
+        width: 100%;
+        height: 45px;
+        padding: 10px;
+    }
 
-        <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign
-            in</a>.{% endblocktrans %}</p>
+    div.signup-container {
+        padding-top: 4.0cm !important;
+    }
+</style>
 
-        <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-          {% csrf_token %}
-          {{ form|crispy }}
-          {% if redirect_field_value %}
-          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-          {% endif %}
-          <button class="btn btn-primary" type="submit">{% trans "Sign Up" %} &raquo;</button>
-        </form>
+<div class="container signup-container pt-7">
+    <section class="mb-4">
+        <div class="row wow fadeIn">
+            <div class="col-6 offset-3">
 
-      </div>
-    </div>
-  </section>
+                <h1 class="text-center font-roboto mb-3" style="font-size: 4.2em;">{% trans "Sign Up" %}</h1>
+                <p class="text-center mb-3">{% blocktrans %}Already have an account? Then please <a
+                        href="{{ login_url }}">sign
+                        in</a>.{% endblocktrans %}</p>
+
+                <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                    {% csrf_token %}
+
+                    {{ form.errors }}
+
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="md-form md-outline mt-0">
+                                {{ form.first_name }}
+                                <label for="first_name">First name</label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="md-form md-outline mt-0">
+                                {{ form.last_name }}
+                                <label for="last_name">Last name</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md-form md-outline mt-0">
+                        {{ form.username }}
+                        <label for="username">Username</label>
+                        <small id="hint_id_username" class="form-text text-muted mb-4">
+                            Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+                        </small>
+                    </div>
+
+                    <div class="md-form md-outline mt-0">
+                        {{ form.email }}
+                        <label data-error="wrong" data-success="right" for="email">Email</label>
+                    </div>
+
+                    <div class="md-form md-outline mt-0">
+                        {{ form.password1 }}
+                        <label data-error="wrong" data-success="right" for="password1">Password</label>
+                        <small id="hint_id_password1" class="form-text text-muted mb-4">
+                            At least 8 characters and 1 digit
+                        </small>
+                    </div>
+
+                    <div class="md-form md-outline mt-0">
+                        {{ form.password2 }}
+                        <label data-error="wrong" data-success="right" for="password2">Password confirmation</label>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-block my-3">
+                        {% for value, name in form.fields.user_type.choices %}
+                        <div class="custom-control custom-radio">
+                            <input id="{{ name }}" name="user_type" type="radio" class="custom-control-input"
+                                value="{{value}}" required>
+                            <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+
+                    <div class="text-center mb-2">
+                        <button id="signup-btn" type="submit" class="btn btn-primary mb-4 waves-effect waves-light">Sign
+                            Up</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </section>
 </div>
 
+
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script text="text/javascript">
+    $('#signup-btn').hover(
+        function () {
+            $(this).removeClass('btn-primary')
+            $(this).addClass('btn-outline-primary')
+
+        }, function () {
+            $(this).removeClass('btn-outline-primary')
+            $(this).addClass('btn-primary')
+        }
+    );
+</script>
 {% endblock %}

@@ -7,6 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('core.urls', namespace='core')),
+    path('item/', include('item.urls', namespace='item')),
+    path('order/', include('order.urls', namespace='order')),
     path('stripe/', include('djstripe.urls', namespace='djstripe')),
 ]
 

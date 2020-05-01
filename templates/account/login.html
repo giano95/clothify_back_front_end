@@ -1,59 +1,143 @@
-{% extends "account/base.html" %}
+{% extends "base-standard.html" %}
 
+{% load staticfiles %}
+{% load my_template_tags %}
 {% load i18n %}
 {% load account socialaccount %}
 {% load crispy_forms_tags %}
-{% load my_template_tags %}
+
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
+
 {% block content %}
 
+<style>
+    div#container-form {
+        width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    div.login-container {
+        padding-top: 4.5cm !important;
+    }
+
+    form.login div.md-form input {
+        width: 100%;
+        height: 45px;
+        padding: 10px;
+    }
+</style>
+
+<!--Main layout-->
 <main>
-  <div class="container pt-7">
-    <section class="mb-4">
-      <div class="row wow fadeIn">
-        <div class="col-6 offset-3">
-          <h1>{% trans "Sign In" %}</h1>
+    <div class="container login-container pt-7">
 
-          {% get_providers as socialaccount_providers %}
+        <!-- Main Section -->
+        <section class="mb-5">
+            <div class="row wow fadeIn">
+                <div class="col-6 offset-3">
+                    <h1 class="text-center font-roboto mb-3" style="font-size: 4.6em;">
+                        {% trans "Login" %}</h1>
 
-          {% if socialaccount_providers %}
-          <p>{% blocktrans with site.name as site_name %}Please sign in with one
-            of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
-            for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
+                    {% get_providers as socialaccount_providers %}
 
-          <div class="socialaccount_ballot">
+                    {% if socialaccount_providers %}
+                    <p>{% blocktrans with site.name as site_name %}Please sign in with one
+                        of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
+                        for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
 
-            <ul class="socialaccount_providers">
-              {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-            </ul>
+                    <div class="socialaccount_ballot">
 
-            <div class="login-or">{% trans 'or' %}</div>
+                        <ul class="socialaccount_providers">
+                            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                        </ul>
 
-          </div>
+                        <div class="login-or">{% trans 'or' %}</div>
 
-          {% include "socialaccount/snippets/login_extra.html" %}
+                    </div>
 
-          {% else %}
-          <p>{% blocktrans %}If you have not created an account yet, then please
-            <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
-          {% endif %}
+                    {% include "socialaccount/snippets/login_extra.html" %}
 
-          <form class="login" method="POST" action="{% url 'account_login' %}">
-            {% csrf_token %}
-            {{ form|crispy }}
-            {% if redirect_field_value %}
-            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-            {% endif %}
-            <a class="btn btn-default" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-            <button class="btn btn-primary" type="submit">{% trans "Sign In" %}</button>
-          </form>
+                    {% else %}
+                    <p class="text-center mb-3">{% blocktrans %}If you have not created an account yet, then please
+                        <a href="{{ signup_url }}">Sign Up</a> first.{% endblocktrans %}</p>
+                    {% endif %}
 
-        </div>
-      </div>
-    </section>
-  </div>
+
+
+
+                    <!--Grid row-->
+                    <div class="row d-flex justify-content-center">
+
+                        <!--Grid column-->
+                        <div id="container-form">
+
+                            <!--Section: Content-->
+                            <section class="mb-5">
+
+                                <form class="login" method="POST" action="{% url 'account_login' %}">
+                                    {% csrf_token %}
+
+                                    <div class="md-form md-outline mt-0">
+                                        {{ form.login }}
+                                        <label style="margin-bottom: 0em !important;" for="login">Username</label>
+                                    </div>
+                                    <div class="md-form md-outline mt-0 mb-1">
+                                        {{ form.password }}
+                                        <label style="margin-bottom: 0em !important;" data-error="wrong"
+                                            data-success="right" for="password">Password</label>
+
+                                    </div>
+
+
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                        <p><a href="{% url 'account_reset_password' %}">Forgot password?</a></p>
+                                        <div class="form-check pl-0 mb-3">
+                                            <input type="checkbox" class="form-check-input filled-in" id="new">
+                                            <label class="form-check-label small text-uppercase card-link-secondary"
+                                                for="new">Remember me</label>
+                                        </div>
+
+
+                                        {% if redirect_field_value %}
+                                        <input type="hidden" name="{{ redirect_field_name }}"
+                                            value="{{ redirect_field_value }}" />
+                                        {% endif %}
+
+                                    </div>
+
+                                    <div class="text-center pb-2">
+                                        <button type="submit" id="login-btn"
+                                            class="btn btn-primary mb-4 waves-effect waves-light">{% trans "Login" %}</button>
+                                    </div>
+                                </form>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Main Section -->
+
+    </div>
 </main>
+<!--Main layout-->
 
-{% endblock %}
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script text="text/javascript">
+    $('#login-btn').hover(
+        function () {
+            $(this).removeClass('btn-primary')
+            $(this).addClass('btn-outline-primary')
+
+        }, function () {
+            $(this).removeClass('btn-outline-primary')
+            $(this).addClass('btn-primary')
+        }
+    );
+</script>
+{% endblock content %}

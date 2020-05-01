@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% load my_template_tags %}
+
+{% block navbar  %}
+<!--Main Navigation-->
+<header>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md navbar-light fixed-top scrolling-navbar navbar-transparent">
+
+        <div class="container-fluid">
+
+            <!-- Brand -->
+            <a class="navbar-brand" href="{% url 'core:home' %}">
+                <img src="{% static 'img/icona5_white.png' %}" alt="mdb logo" width="56" height="56">
+            </a>
+
+            <!-- Collapse button -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav"
+                aria-controls="basicExampleNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Links -->
+            <div class="collapse navbar-collapse" id="basicExampleNav">
+
+                <!-- Right -->
+                <ul class="navbar-nav ml-auto">
+
+                    {% if request.user.is_authenticated %}
+
+                    <!-- Cart -->
+                    <li class="nav-item">
+                        <a href="{% url 'order:order' %}" class="nav-link navbar-link-2 waves-effect">
+
+                            {% if request.user|cart_item_count > 0 %}
+
+                            <span class="badge badge-pill red">{{ request.user|cart_item_count }}</span>
+
+                            {% endif %}
+
+                            <i class="fas fa-shopping-cart pl-0"></i>
+                        </a>
+                    </li>
+                    <!-- Cart -->
+
+                    {% endif %}
+
+                    <!-- Contact -->
+                    <li class="nav-item">
+                        <a href="{% url 'core:contact' %}" class="nav-link waves-effect">
+                            Contact
+                        </a>
+                    </li>
+                    <!-- Contact -->
+
+                    <!-- Shop -->
+                    <li class="nav-item">
+                        <a href="{% url 'core:shop' %}" class="nav-link waves-effect">
+                            Shop
+                        </a>
+                    </li>
+                    <!-- Shop -->
+
+                    {% if request.user.is_authenticated %}
+
+                    <!-- Logout -->
+                    <li class="nav-item pl-2 mb-2 mb-md-0">
+                        <a href="{% url 'account_logout' %}" type="button"
+                            class="btn btn-outline-info btn-md btn-navbar waves-effect waves-light">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="clearfix d-none d-sm-inline-block"> Logout </span>
+                        </a>
+                    </li>
+                    <!-- Logout -->
+
+                    {% else %}
+
+                    <!-- Login -->
+                    <li class="nav-item pl-2 mb-2 mb-md-0">
+                        <a href="{% url 'account_login' %}" type="button"
+                            class="btn btn-outline-info btn-md btn-navbar waves-effect waves-light">
+                            <i class="fas fa-sign-in-alt fa-lg"></i>
+                            <span class="clearfix d-none d-sm-inline-block pl-2"> Login </span>
+                        </a>
+                    </li>
+                    <!-- Login -->
+
+                    {% endif %}
+
+                </ul>
+
+            </div>
+            <!-- Links -->
+        </div>
+
+    </nav>
+    <!-- Navbar -->
+
+
+    <!-- Navbar Carousel -->
+    <div id="navbar-carousel" class="carousel slide carousel-fade" data-ride="carousel">
+
+        <div class="carousel-inner">
+
+            <div class="carousel-item active">
+
+                <div class="jumbotron jumbotron-image color-grey-light"
+                    style="background-image: url('https://mdbootstrap.com/img/Photos/Others/clothes(3)-crop.jpg'); height: 420px;">
+                    <div class="mask rgba-black-strong d-flex align-items-center h-100">
+                    </div>
+                </div>
+                <div class="carousel-caption mb-6">
+                    <img src="{% static 'img/brand-name.png' %}" height="70">
+                </div>
+            </div>
+
+            <div class="carousel-item">
+
+                <div class="jumbotron jumbotron-image color-grey-light"
+                    style="background-image: url('https://mdbootstrap.com/img/Photos/Others/clothes(5)-crop.jpg'); height: 420px;">
+                    <div class="mask rgba-black-strong d-flex align-items-center h-100">
+                    </div>
+                    <div class="carousel-caption mb-6">
+                        <img src="{% static 'img/brand-name.png' %}" height="70">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="carousel-item">
+
+                <div class="jumbotron jumbotron-image color-grey-light"
+                    style="background-image: url('https://mdbootstrap.com/img/Photos/Others/clothes(4)-crop.jpg'); height: 420px;">
+                    <div class="mask rgba-black-strong d-flex align-items-center h-100">
+                    </div>
+                    <div class="carousel-caption mb-6">
+                        <img src="{% static 'img/brand-name.png' %}" height="70">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Navbar Carousel -->
+
+</header>
+<!--Main Navigation-->
+{% endblock navbar %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    $(function () {
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 10) {
+                $('.navbar-brand img').attr('src', "{% static 'img/icona5_black.png' %}")
+                $('.btn-navbar').addClass('blue-gradient')
+                $('.btn-navbar').removeClass('btn-outline-info')
+            }
+            else {
+                $('.navbar-brand img').attr('src', "{% static 'img/icona5_white.png' %}")
+                $('.btn-navbar').addClass('btn-outline-info')
+                $('.btn-navbar').removeClass('blue-gradient')
+            }
+        })
+    });
+
+    $('.carousel').carousel({
+        interval: 15000
+    })
+
+    // transition the carousel every tot second
+    window.setInterval(function () { $('.carousel').carousel('next') }, 15000);
+
+</script>
+{% endblock extra_scripts %}

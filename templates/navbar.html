@@ -27,7 +27,7 @@
                     <a class="nav-link waves-effect" href="{% url 'core:checkout' %}">Checkout</a>
                 </li>
                 <li class="nav-item" id="stripe-register">
-                    <a class="nav-link waves-effect" href="oauth_url">Stripe-register</a>
+                    <a class="nav-link waves-effect" href="/dummy_url/">Stripe-register</a>
                 </li>
             </ul>
 
@@ -36,7 +36,7 @@
                 {% if request.user.is_authenticated %}
                 <li class="nav-item">
                     <a href="{% url 'core:order_summary' %}" class="nav-link waves-effect">
-                        {% if request.user|cart_item_count > 0%}
+                        {% if request.user|cart_item_count > 0 %}
                         <span class="badge red z-depth-1 mr-1"> {{ request.user|cart_item_count }} </span>
                         {% endif %}
                         <i class="fas fa-shopping-cart"></i>
@@ -69,7 +69,7 @@
         return response.json();
     }).then(function (responseJson) {
         var oauth_url = responseJson.oauth_url;
-        $("a[href='oauth_url']").attr('href', oauth_url)
+        $("a[href='/dummy_url/']").attr('href', oauth_url)
     });
 
 </script>

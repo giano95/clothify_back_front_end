@@ -1,5 +1,7 @@
-{% extends "account/base.html" %}
+{% extends "base-standard.html" %}
 
+{% load staticfiles %}
+{% load my_template_tags %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
@@ -7,25 +9,32 @@
 
 {% block content %}
 
-<div class="container pt-7">
-  <section class="mb-4">
-    <div class="row wow fadeIn">
-      <div class="col-6 offset-3">
-        <h1>{% trans "Sign Out" %}</h1>
+<style>
+    div.logout-container {
+        padding-top: 4.5cm !important;
+    }
+</style>
 
-        <p>{% trans 'Are you sure you want to sign out?' %}</p>
+<div class="container logout-container pt-7">
+    <section style="text-align:center" class="mb-5">
+        <div class="row wow fadeIn">
+            <div class="col-6 offset-3">
+                <h1 class="font-roboto">{% trans "Sign Out" %}</h1>
 
-        <form method="post" action="{% url 'account_logout' %}">
-          {% csrf_token %}
-          {% if redirect_field_value %}
-          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-          {% endif %}
-          <button class="btn btn-primary" type="submit">{% trans 'Sign Out' %}</button>
-        </form>
+                <p>{% trans 'Are you sure you want to sign out?' %}</p>
 
-      </div>
-    </div>
-  </section>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    <button style="margin-top: 15px" class="btn btn-primary"
+                        type="submit">{% trans 'Sign Out' %}</button>
+                </form>
+
+            </div>
+        </div>
+    </section>
 </div>
 
 {% endblock %}

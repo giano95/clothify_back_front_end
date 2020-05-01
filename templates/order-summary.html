@@ -14,7 +14,7 @@
         <div class="container pt-7">
 
             <h1>Cart:</h1>
-            {% if order.get_total_order_price == 0 %}
+            {% if order.get_total_order_price == 0 or not order %}
             <p>your cart is empty</p>
             {% else %}
 
@@ -39,7 +39,7 @@
                             <h5 class="font-weight-bold card-title mt-2">{{ order_item.item.name }}</h5>
                             Price: {{ order_item.item.get_price }} $
                             <br>
-                            <small><a href="{% url 'core:update_cart' order_item.item.id '0' %}"
+                            <small><a href="{% url 'order:update_order_item' order_item.item.id '0' %}"
                                     class="text-danger">remove</a></small>
                             <br>
 
@@ -53,15 +53,15 @@
 
                             <div class="dropdown-menu" aria-labelledby="quantity-dropdown-button">
                                 <a class="dropdown-item"
-                                    href="{% url 'core:update_cart' order_item.item.id '1' %}">1</a>
+                                    href="{% url 'order:update_order_item' order_item.item.id '1' %}">1</a>
                                 <a class="dropdown-item"
-                                    href="{% url 'core:update_cart' order_item.item.id '2' %}">2</a>
+                                    href="{% url 'order:update_order_item' order_item.item.id '2' %}">2</a>
                                 <a class="dropdown-item"
-                                    href="{% url 'core:update_cart' order_item.item.id '3' %}">3</a>
+                                    href="{% url 'order:update_order_item' order_item.item.id '3' %}">3</a>
                                 <a class="dropdown-item"
-                                    href="{% url 'core:update_cart' order_item.item.id '4' %}">4</a>
+                                    href="{% url 'order:update_order_item' order_item.item.id '4' %}">4</a>
                                 <a class="dropdown-item"
-                                    href="{% url 'core:update_cart' order_item.item.id '5' %}">5</a>
+                                    href="{% url 'order:update_order_item' order_item.item.id '5' %}">5</a>
                             </div>
 
                         </div>

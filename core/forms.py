@@ -1,16 +1,43 @@
 from django import forms
 from django.conf import settings
-from django.forms import TextInput, Select
+from django.forms import TextInput, Select, PasswordInput, FileInput, CheckboxInput, RadioSelect
 from cities_light.models import Country, Region, City
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, CheckoutInfo, Item
+from core.models import User
 from django.contrib.auth.forms import UserCreationForm
+from allauth.account.forms import LoginForm
 import json as json
+from core.models import CheckoutInfo
 
-PAYMENT_CHOICES = (
-    ('sripe', 'stripe'),
-    ('paypal', 'paypal')
-)
+
+class CustomUserCreationForm(UserCreationForm):
+    user_type = forms.ChoiceField(choices=User.TYPE_CHOICES, label='User Type')
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username',
+                  'user_type', 'email', 'password1', 'password2')
+        widgets = {
+            'first_name': TextInput(attrs={'id': 'first_name', 'class': 'form-control'}),
+            'last_name': TextInput(attrs={'id': 'last_name', 'class': 'form-control'}),
+            'username': TextInput(attrs={'id': 'username', 'class': 'form-control'}),
+            'email': TextInput(attrs={'id': 'email', 'class': 'form-control'}),
+            'password1': PasswordInput(attrs={'id': 'password1', 'class': 'form-control password-form'}),
+            'password2': PasswordInput(attrs={'id': 'password2', 'class': 'form-control password-form'}),
+        }
+
+        def signup(self, request, user):
+            pass
+
+
+class CustomLoginForm(LoginForm):
+    def __init__(self, *args, **kwargs):
+        super(CustomLoginForm, self).__init__(*args, **kwargs)
+
+        self.fields['password'].widget = PasswordInput(
+            attrs={'id': 'password', 'class': 'form-control password-form mb-0'})
+        self.fields['login'].widget = TextInput(
+            attrs={'id': 'login', 'class': 'form-control mb-0'})
 
 
 class CheckoutForm(forms.ModelForm):
@@ -33,39 +60,23 @@ class CheckoutForm(forms.ModelForm):
         ('P', 'PayPal')
     )
 
-    same_billing_address = forms.BooleanField(widget=forms.CheckboxInput(attrs={
+    same_billing_address = forms.BooleanField(widget=CheckboxInput(attrs={
         'id': 'same_billing_address',
         'class': 'custom-control-input'
     }))
-    save_info = forms.BooleanField(widget=forms.CheckboxInput(attrs={
+    save_info = forms.BooleanField(widget=CheckboxInput(attrs={
         'id': 'save_info',
         'class': 'custom-control-input'
     }))
     payment_option = forms.ChoiceField(
-        choices=PAYMENT_CHOICES, widget=forms.RadioSelect)
+        choices=PAYMENT_CHOICES, widget=RadioSelect)
 
 
-class CustomUserCreationForm(UserCreationForm):
-    user_type = forms.ChoiceField(choices=User.TYPE_CHOICES, label='User Type')
+class ContactForm(forms.Form):
 
-    class Meta:
-        model = User
-        fields = ('first_name', 'last_name', 'username',
-                  'email', 'user_type', 'password1', 'password2')
-
-        def signup(self, request, user):
-            pass
-
-
-class ItemForm(forms.ModelForm):
-    img = forms.ImageField(help_text="Upload image: ", required=True)
-    name = forms.CharField(max_length=100, help_text='title')
-    category = forms.ChoiceField(
-        choices=Item._meta.get_field('category').choices)
-    description = forms.CharField(max_length=1000)
-    price = forms.DecimalField(max_digits=7, decimal_places=2)
-    unit = forms.ChoiceField(choices=Item._meta.get_field('unit').choices)
-
-    class Meta:
-        model = Item
-        fields = ['name', 'description', 'category', 'price', 'img', 'unit']
+    form_email = forms.EmailField(widget=forms.EmailInput(
+        attrs={'id': 'form_email', 'class': 'form-control', 'type': 'email'}), required=True)
+    subject = forms.CharField(widget=forms.TextInput(
+        attrs={'id': 'subject', 'class': 'form-control', 'type': 'text'}), required=True)
+    message = forms.CharField(widget=forms.Textarea(
+        attrs={'id': 'message', 'class': 'md-textarea form-control', 'rows': '4'}), required=True)

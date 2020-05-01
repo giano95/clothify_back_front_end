@@ -1,24 +1,299 @@
-{% extends 'base.html' %}
+{% extends 'base-standard.html' %}
+
+{% load i18n %}
+{% load account socialaccount %}
 {% load crispy_forms_tags %}
+{% load my_template_tags %}
+
 
 {% block content %}
-<div class="container pt-7">
-    <div class="row">
-        <div class="col-6">
-            <h2>Create post</h2>
-            <form method="POST" class="form-group" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <button type="submit" class="btn btn-success">create</button>
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
+<style>
+    div.md-form.md-outline label {
+        padding-left: 25px !important;
+    }
 
-{% block extra_scripts %}
-<script type="text/javascript">
-    var element = document.getElementById("Add item");
-    element.classList.add("active");
+    textarea:focus:invalid:focus {
+        border: 2px solid #4285f4;
+        border-radius: 4px;
+    }
+</style>
+<style>
+    .images {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .images .img,
+    .images .pic {
+        flex-basis: 100%;
+
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .images .img {
+        width: 100%;
+        height: 300px;
+        background-size: cover;
+        margin-right: 10px;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .images .img:nth-child(3n) {
+        margin-right: 0;
+    }
+
+    .images .img span {
+        display: none;
+        text-transform: capitalize;
+        z-index: 2;
+    }
+
+    .images .img::after {
+        content: '';
+        width: 100%;
+        height: 100%;
+        transition: opacity .1s ease-in;
+        border-radius: 4px;
+        opacity: 0;
+        position: absolute;
+    }
+
+    .images .img:hover::after {
+        display: block;
+        background-color: #000;
+        opacity: .5;
+    }
+
+    .images .img:hover span {
+        display: block;
+        color: #fff;
+    }
+
+    .images .pic {
+        background-color: #F5F7FA;
+        align-self: center;
+        text-align: center;
+        padding: 40px 0;
+        text-transform: uppercase;
+        color: #848EA1;
+        font-size: 45px;
+        cursor: pointer;
+        vertical-align: middle;
+        line-height: 220px;
+        height: 308px;
+    }
+
+    .upload-image-container input {
+        display: none !important;
+    }
+</style>
+
+
+
+<div class="container add-item-container pt-7">
+
+
+    <h2 class="text-center mb-5">Create post</h2>
+
+    <!--Grid column-->
+    <div class="row">
+
+        <form style="width: 100%" method="POST" class="form-group" enctype="multipart/form-data" id="formupload">
+            {% csrf_token %}
+
+            <!-- itemForm -->
+            {{ itemForm.management_form }}
+            <div class="md-form md-outline mt-0 col-lg-4">
+                {{ itemForm.name }}
+                <label for="name">Title</label>
+            </div>
+
+
+            <div class="col-lg-12">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="row">
+                            <div style=" border-radius: 4px;" class="md-form md-outline mt-0 col-lg-12">
+                                {{ itemForm.description }}
+                                <label for="description">Description</label>
+                            </div>
+
+
+                            <div class="md-form md-outline mt-0 col-lg-6">
+                                {{ itemForm.price }}
+                                <label for="price">Price</label>
+                            </div>
+
+                            <div class="md-form md-outline mt-0 col-lg-6">
+                                {{ itemForm.quantity }}
+                                <label for="quantity">Quantity</label>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <hr style="margin-top: 0px">
+                        <div class="d-block my-3 ">
+                            <p class="text-center">Choose a category</p>
+                            <div>
+                                {% for value, name in itemForm.fields.category.choices %}
+                                <div style="    padding-top: 5px; padding-bottom: 5px;"
+                                    class="custom-control custom-radio">
+                                    <input id="{{ name }}" name="category" type="radio" class="custom-control-input"
+                                        value="{{value}}" required>
+                                    <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+
+                <div class="col-lg-3 upload-image-container">
+                    <div class="images" id="if">
+                        <div class="pic" id="itemform">
+                            <label for="id_img"></label>
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    {{ itemForm.img }}
+                </div>
+
+                <!-- formset -->
+
+                {{ formset.management_form }}
+                {% for form in formset %}
+                <div class="col-lg-3 upload-image-container">
+                    <div class="images" id="up_{{ form.image.html_name }}">
+                        <div class="pic" id="btn_{{ form.image.html_name }}">
+                            <label for="id_{{ form.image.html_name }}">
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    {{ form.image }}
+                </div>
+                {% endfor %}
+            </div>
+
+            {{ itemForm.color }}
+            {{ itemForm.size }}
+
+            <div style="margin-top: 30px;" class="text-center pb-2">
+                <button type="submit" class="btn btn-success mgln">Add post</button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+
+            uploadImage()
+
+
+            var ID
+            var way = 0
+            var queue = []
+            var fullStock = 10
+            var speedCloseNoti = 1000
+
+
+            function uploadImage() {
+
+                var button = $('.images #itemform')
+                var button_0 = $('.images #btn_form-0-image ')
+                var button_1 = $('.images #btn_form-1-image')
+                var button_2 = $('.images #btn_form-2-image')
+
+                var uploader = $('#id_img')
+                var uploader_0 = $('#id_form-0-image')
+                var uploader_1 = $('#id_form-1-image')
+                var uploader_2 = $('#id_form-2-image')
+
+                var images = $('#if')
+                var images_0 = $('#up_form-0-image')
+                var images_1 = $('#up_form-1-image')
+                var images_2 = $('#up_form-2-image')
+
+                button.on('click', function () {
+                    uploader.click()
+                })
+                button_0.on('click', function () {
+                    uploader_0.click()
+                })
+                button_1.on('click', function () {
+                    uploader_1.click()
+                })
+                button_2.on('click', function () {
+                    uploader_2.click()
+                })
+
+                uploader.on('change', function () {
+                    var reader = new FileReader()
+                    reader.onload = function (event) {
+                        button.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    }
+                    reader.readAsDataURL(uploader[0].files[0])
+                })
+                uploader_0.on('change', function () {
+                    var reader = new FileReader()
+                    reader.onload = function (event) {
+                        button_0.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    }
+                    reader.readAsDataURL(uploader_0[0].files[0])
+                })
+                uploader_1.on('change', function () {
+                    var reader = new FileReader()
+                    reader.onload = function (event) {
+                        button_1.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    }
+                    reader.readAsDataURL(uploader_1[0].files[0])
+                })
+                uploader_2.on('change', function () {
+                    var reader = new FileReader()
+                    reader.onload = function (event) {
+                        button_2.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    }
+                    reader.readAsDataURL(uploader_2[0].files[0])
+                })
+
+                images.on('click', '.img', function () {
+                    $(this).remove()
+                })
+                images_0.on('click', '.img', function () {
+                    $(this).remove()
+                })
+                images_1.on('click', '.img', function () {
+                    $(this).remove()
+                })
+                images_2.on('click', '.img', function () {
+                    $(this).remove()
+                })
+
+            }
+
+
+        })
+    })(jQuery)
+
 </script>
-{% endblock extra_scripts %}
+
+{% endblock %}

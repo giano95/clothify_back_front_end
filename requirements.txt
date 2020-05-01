@@ -17,7 +17,7 @@ defusedxml==0.6.0
 distro==1.3.0
 distro-info===0.21ubuntu4
 dj-stripe==2.3.0
-Django==2.2.8
+Django==2.2.10
 django-allauth==0.41.0
 django-autoslug-iplweb==1.9.4.dev0
 django-cities-light==3.5.0

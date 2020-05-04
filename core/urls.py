@@ -11,7 +11,7 @@ from core.views import (
     get_countries,
     get_regions,
     get_cities,
-    dummy_url,
+    permission_denied,
 )
 
 
@@ -25,7 +25,7 @@ urlpatterns = [
     path('secret/', secret, name='secret'),
     path('connect/get_oauth_url/', get_oauth_url, name='get_oauth_url'),
     path('connect/oauth/', handle_oauth_redirect, name='handle_oauth_redirect'),
-    path('dummy_url/', dummy_url, name='dummy_url'),
+    path('permission_denied/', permission_denied, name='permission_denied'),
     path('get_countries/', get_countries, name='get_countries'),
     path('get_regions/', get_regions, name='get_regions'),
     path('get_cities/', get_cities, name='get_cities'),

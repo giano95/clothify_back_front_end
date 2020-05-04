@@ -28,7 +28,7 @@ class User(AbstractUser):
 
 class CheckoutInfo(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
+                             on_delete=models.CASCADE, default=None)
     first_name = models.TextField()
     last_name = models.TextField()
     email = models.EmailField()

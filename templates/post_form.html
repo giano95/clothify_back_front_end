@@ -190,7 +190,15 @@
             </div>
 
             {{ itemForm.color }}
-            {{ itemForm.size }}
+
+            <br>
+
+            {{ formset2.management_form }}
+            {% for form in formset2 %}
+
+            {{ form }}
+
+            {% endfor %}
 
             <div style="margin-top: 30px;" class="text-center pb-2">
                 <button type="submit" class="btn btn-success mgln">Add post</button>

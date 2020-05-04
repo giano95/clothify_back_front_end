@@ -53,6 +53,18 @@ def is_sub_seller(user):
         return False
 
 
+class HomeView(ListView):
+    model = Item
+    paginate_by = 6
+    context_object_name = 'items'
+    template_name = 'home.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(HomeView, self).get_context_data(*args, **kwargs)
+        context['categories'] = ItemCategory.objects.all()
+        return context
+
+
 class ShopView(ListView):
     model = Item
     paginate_by = 9
@@ -147,18 +159,6 @@ class ShopView(ListView):
         return result
 
 
-class HomeView(ListView):
-    model = Item
-    paginate_by = 6
-    context_object_name = 'items'
-    template_name = 'home.html'
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(HomeView, self).get_context_data(*args, **kwargs)
-        context['categories'] = ItemCategory.objects.all()
-        return context
-
-
 class CheckoutView(View):
 
     def get(self, *args, **kwargs):
@@ -216,7 +216,7 @@ class ContactView(View):
 
 
 @login_required
-@user_passes_test(is_unsub_seller)
+@user_passes_test(is_unsub_seller, login_url='core:permission_denied')
 def get_oauth_url(request):
     oauth_url = 'https://connect.stripe.com/express/oauth/authorize?' + \
         'client_id=' + 'ca_H86KCmvSbEJXwyLilNw2t3wV9a1jNDZW' + \
@@ -228,9 +228,9 @@ def get_oauth_url(request):
     return JsonResponse({'oauth_url': oauth_url})
 
 
-# A dummy url fo redirect the non seller who try to get the oauth url
-def dummy_url(request):
-    return JsonResponse({'error': '403 Forbidden: you are not a Seller'}, status=403)
+# Redirect user here when haven't any sort of permission
+def permission_denied(request):
+    raise PermissionDenied
 
 
 def handle_oauth_redirect(request):

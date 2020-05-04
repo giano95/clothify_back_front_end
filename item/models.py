@@ -4,6 +4,9 @@ from django.shortcuts import reverse
 from django.contrib.auth.models import User
 from statistics import mean
 from math import ceil
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
 
 LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris id turpis porttitor, vestibulum massa vel, tristique ante. Curabitur hendrerit quam massa, sit amet lobortis tellus consectetur eu. Suspendisse aliquet commodo tristique. Vivamus maximus pharetra sapien, ornare tempor libero egestas sed. Phasellus massa magna, tincidunt vitae nisl eget, rhoncus bibendum enim. Duis sed lectus sed leo pharetra ultrices id sit amet dolor. Vivamus pellentesque mi sed dignissim rhoncus. Nunc in sollicitudin quam. Nullam ornare dui quis sapien bibendum, nec sagittis purus venenatis.'
 DEFAULT_IMG = 'https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Vertical/15.jpg'
@@ -20,9 +23,10 @@ class Item(models.Model):
     category = models.ForeignKey('item.ItemCategory', on_delete=models.CASCADE)
     description = models.CharField(max_length=1000, default=LOREM_IPSUM)
     img = models.ImageField(upload_to='item/img/')
+    images = models.ManyToManyField('item.ItemImage')
     color = models.ManyToManyField('item.ItemColor')
-    size = models.ManyToManyField('item.ItemSize')
-    quantity = models.IntegerField()
+    # size = models.ManyToManyField('item.ItemSize')
+    quantities_size = models.ManyToManyField('item.ItemQuantitySize')
     label = models.ForeignKey(
         'item.ItemLabel', on_delete=models.CASCADE, null=True, blank=True)
     not_discounted_price = models.FloatField(blank=True, null=True)
@@ -65,18 +69,13 @@ class Item(models.Model):
         return self.name
 
 
-def get_image_filename(instance, filename):
-    id = instance.item.id
-    return "post_images/%s" % (id)
-
-
 class ItemImage(models.Model):
-    item = models.ForeignKey('item.Item', on_delete=models.CASCADE, default='')
+
     image = models.ImageField(
-        upload_to=get_image_filename, verbose_name='Image')
+        upload_to='item/img/', verbose_name='Image')
 
     def __str__(self):
-        return 'ItemImage of {} item'.format(self.item.name)
+        return 'ItemImage of item'
 
 
 class ItemReview(models.Model):
@@ -135,6 +134,14 @@ class ItemSize(models.Model):
         return self.tag
 
 
+class ItemQuantitySize(models.Model):
+    size = models.ForeignKey('item.ItemSize', on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+
+    def __str__(self):
+        return '%i of size %s' % (self.quantity, self.size)
+
+
 class ItemLabel(models.Model):
     CHOICES = (
         ('badge-default', 'badge-default'),
@@ -162,3 +169,13 @@ class ItemCategory(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@receiver(pre_delete, sender=Item, dispatch_uid='remove_related_item_field')
+def remove_related_item_field(sender, instance, using, **kwargs):
+    images = instance.images.all()
+    for image in images:
+        ItemImage.objects.filter(id=image.id).delete()
+    quantities_size = instance.quantities_size.all()
+    for quantity_size in quantities_size:
+        ItemQuantitySize.objects.filter(id=quantity_size.id).delete()

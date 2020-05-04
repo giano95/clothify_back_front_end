@@ -6,6 +6,8 @@ class OrderItem(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
     item = models.ForeignKey('item.Item', on_delete=models.CASCADE)
+    item_size = models.ForeignKey(
+        'item.ItemSize', on_delete=models.CASCADE, default=None)
     is_ordered = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
 
@@ -34,6 +36,14 @@ class Order(models.Model):
         for order_item in self.order_items.all():
             total += float(order_item.get_total_price())
         return total
+
+    def empty(self):
+        if self.get_total_order_price() == 0:
+            return True
+        elif not self.order_items:
+            return True
+        else:
+            return False
 
     def __str__(self):
         return self.user.username

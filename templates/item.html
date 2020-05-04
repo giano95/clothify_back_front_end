@@ -222,7 +222,8 @@
                                             <button
                                                 onclick="this.parentNode.querySelector(&#39;input[type=number]&#39;).stepDown()"
                                                 class="minus"></button>
-                                            <input class="quantity" min="0" name="quantity" value="1" type="number">
+                                            <input id="item_quantity" class="quantity" min="0" name="quantity" value="1"
+                                                type="number">
                                             <button
                                                 onclick="this.parentNode.querySelector(&#39;input[type=number]&#39;).stepUp()"
                                                 class="plus"></button>
@@ -232,12 +233,14 @@
                             </tbody>
                         </table>
                     </div>
+
+
                     <!-- <button type="button" class="btn btn-primary btn-md mr-1 mb-2 waves-effect waves-light">Buy now</button> -->
-                    <a href="{{ item.get_add_to_cart_url }}" class="d-flex justify-content-left">
+                    <div id="add-to-cart-btn" class="d-flex justify-content-left">
                         <button type="button" class="btn btn-light btn-md mr-1 mb-2 waves-effect waves-light"><i
                                 class="fas fa-shopping-cart pr-2"></i>Add to
                             cart</button>
-                    </a>
+                    </div>
                 </div>
             </div>
 
@@ -401,5 +404,18 @@
 </main>
 <!--Main layout-->
 
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script text="text/javascript">
 
+    function redirect(url) {
+        window.location.href = url
+    }
+
+    $('#add-to-cart-btn').on('click', function () {
+        var delay = 500
+        var item_id = '{{ item.id| safe }}'
+        var item_q = document.getElementById('item_quantity').value
+        setTimeout(redirect, delay, '/order/add_order_item/' + item_id + '/S/' + item_q + '/')
+    })
+</script>
 {% endblock content %}

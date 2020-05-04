@@ -5,7 +5,7 @@
 
 {% block head_title %}Clothify{% endblock %}
 
-{% block body_class  %}grey lighten-4{% endblock body_class %}
+{% block body_class  %}grey lighten-5{% endblock body_class %}
 
 {% block content %}
 
@@ -22,8 +22,20 @@
         <!--Section: Block Content-->
         <section class="mt-5 mb-4">
 
-            <h1 class="font-roboto mb-0 black-text">Cart</h1>
-            <h5 class="font-roboto text-muted mb-4-5"></h5>
+            {% if order.empty or not order %}
+
+            <h1 class="text-center font-roboto mb-5" style="font-size: 4.6em; margin-top: 6cm;">
+                Your cart empty
+                <span class="fa-stack">
+                    <i class="fas fa-shopping-cart fa-stack-1x"></i>
+                    <i class="far fa-circle fa-stack-1x" style="color:Tomato; font-size: 2em !important;"></i>
+                    <i class="fas fa-slash fa-stack-1x" style="color:Tomato; font-size: 1.1em !important;"></i>
+                </span>
+            </h1>
+
+            {% else %}
+
+            <h1 class="text-center font-roboto mb-5" style="font-size: 4.6em;">Cart</h1>
 
             <!--Grid row-->
             <div class="row">
@@ -31,85 +43,123 @@
                 <!--Grid column-->
                 <div class="col-lg-8">
 
-                    <!-- Card -->
+                    <!-- OrderItems Card -->
                     <div class="card wish-list mb-4">
                         <div class="card-body">
 
+                            {% for order_item in order.order_items.all %}
+
+                            <!-- OrderItem -->
                             <div class="row mb-4">
+
+                                <!-- Image -->
                                 <div class="col-md-5 col-lg-3 col-xl-3">
                                     <div class="view zoom overlay z-depth-1 rounded mb-3 mb-md-0">
-                                        <img class="img-fluid w-100" src="" alt="Sample">
-                                        <a
-                                            href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/cart.html#!">
+                                        <img class="img-fluid w-100" src="{{ order_item.item.img.url }}" alt="Sample"
+                                            style="width: 100% !important; height: auto !important;">
+                                        <a href="{{ order_item.item.get_url }}">
                                             <div class="mask waves-effect waves-light">
-                                                <img class="img-fluid w-100" src="">
                                                 <div class="mask rgba-black-slight waves-effect waves-light"></div>
                                             </div>
                                         </a>
                                     </div>
                                 </div>
-                                <div class="col-md-7 col-lg-9 col-xl-9">
-                                    <div>
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <h5>Blue denim shirt</h5>
-                                                <p class="mb-3 text-muted text-uppercase small">Shirt - blue</p>
-                                                <p class="mb-2 text-muted text-uppercase small">Color: blue</p>
-                                                <p class="mb-3 text-muted text-uppercase small">Size: M</p>
-                                            </div>
-                                            <div>
-                                                <div class="def-number-input number-input safari_only mb-0 w-100">
-                                                    <button
-                                                        onclick="this.parentNode.querySelector(&#39;input[type=number]&#39;).stepDown()"
-                                                        class="minus"></button>
-                                                    <input class="quantity" min="0" name="quantity" value="1"
-                                                        type="number">
-                                                    <button
-                                                        onclick="this.parentNode.querySelector(&#39;input[type=number]&#39;).stepUp()"
-                                                        class="plus"></button>
-                                                </div>
+                                <!-- Image -->
 
-                                            </div>
+                                <!-- Body -->
+                                <div class="col-md-7 col-lg-9 col-xl-9" style="position: relative;">
+
+                                    <div class="row">
+                                        <div class="col-8">
+
+                                            <h3 class="font-roboto mb-1 mt-0 pt-0"
+                                                style="font-size: xx-large; color: black !important;">
+                                                {{ order_item.item.name }}
+                                            </h3>
+
+                                            <p class="mb-2 text-muted font-roboto">
+                                                {{ order_item.item.category.name }}
+                                            </p>
+                                            <p class="mb-2 text-muted font-roboto" style="text-transform:capitalize;">
+                                                {% for color in order_item.item.color.all %}
+                                                {{ color.name }}{% if not forloop.last %},{% endif %}
+                                                {% endfor %}
+                                            </p>
+                                            <p class="mb-2 text-muted font-roboto">
+                                                {{ order_item.item_size.tag }}
+                                            </p>
+
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <a href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/cart.html#!"
-                                                    type="button"
-                                                    class="card-link-secondary small text-uppercase mr-3"><i
-                                                        class="fas fa-trash-alt mr-1"></i> Remove item </a>
+                                        <div class="col-4 pt-1 text-right">
+                                            <a href="{% url 'order:update_order_item' order_item.item.id 0 %}"
+                                                type="button" class="card-link-secondary font-roboto remove-item"
+                                                style="font-size: 1em;">
+                                                <i class="fas fa-trash-alt ml-1 "></i>
+                                            </a>
 
-                                            </div>
-                                            <p class="mb-0 text-primary"><span><strong>$17.99</strong></span></p>
                                         </div>
                                     </div>
+
+                                    <div class="d-flex" style="position: absolute; bottom: 0">
+
+                                        <div class="def-number-input number-input safari_only mb-0 w-100">
+                                            <button
+                                                onclick="window.location.href='{% url 'order:update_order_item' order_item.item.id order_item.quantity|add:'-1' %}';"
+                                                class="minus "></button>
+                                            <input class="quantity" min="0" name="quantity"
+                                                value="{{ order_item.quantity }}" type="number">
+                                            <button
+                                                onclick="window.location.href='{% url 'order:update_order_item' order_item.item.id order_item.quantity|add:'1' %}';"
+                                                class=" plus">
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                    <div class="d-flex" style="position: absolute; bottom: 0; right: 0.8em;">
+
+                                        <p class="pb-0 mb-0 font-roboto-bold text-primary" style="font-size: 1.4em;">
+                                            <small
+                                                class="text-muted">{% if order_item.quantity > 1 %}{{ order_item.quantity }}
+                                                x
+                                                {% endif %}</small>
+                                            <span><strong>${{ order_item.item.price }}</strong></span>
+                                        </p>
+
+                                    </div>
+
                                 </div>
+                                <!-- Body -->
+
                             </div>
+                            <!-- OrderItem -->
+
                             <hr class="mb-4">
 
-                            <p class="text-primary mb-0"><i class="fas fa-info-circle mr-1"></i> Do not delay the
-                                purchase, adding
-                                items to your cart does not mean booking them</p>
+                            {% endfor %}
+
+                            <!-- Credit Card Info -->
+                            <div class="d-flex justify-content-between">
+
+                                <div class="text-primary mb-0">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span> You can pay with your favorite credit card</span>
+                                </div>
+
+                                <div>
+                                    <img class="mr-2" width="45px" src="{% static 'img/credit-card/visa.svg' %}"
+                                        alt="Visa">
+                                    <img class="mr-2" width="45px" src="{% static 'img/credit-card/amex.svg' %}"
+                                        alt="American Express">
+                                    <img class="mr-2" width="45px" src="{% static 'img/credit-card/mastercard.svg' %}"
+                                        alt="Mastercard">
+                                </div>
+
+                            </div>
+                            <!-- Credit Card Info -->
 
                         </div>
                     </div>
-                    <!-- Card -->
-
-                    <!-- Card -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-
-                            <h5 class="mb-4">We accept</h5>
-
-                            <img class="mr-2" width="45px" src="{% static 'img/credit-card/visa.svg' %}" alt="Visa">
-                            <img class="mr-2" width="45px" src="{% static 'img/credit-card/amex.svg' %}"
-                                alt="American Express">
-                            <img class="mr-2" width="45px" src="{% static 'img/credit-card/mastercard.svg' %}"
-                                alt="Mastercard">
-                            <img class="mr-2" width="45px" src="{% static 'img/credit-card/paypal.png' %}"
-                                alt="PayPal acceptance mark">
-                        </div>
-                    </div>
-                    <!-- Card -->
+                    <!-- OrderItems Card -->
 
                 </div>
                 <!--Grid column-->
@@ -121,59 +171,57 @@
                     <div class="card mb-4">
                         <div class="card-body">
 
-                            <h5 class="mb-3">The total amount of</h5>
+                            <h3 class="font-roboto text-black mb-3" style="font-size: xx-large; color: black;">Summary
+                            </h3>
 
                             <ul class="list-group list-group-flush">
+                                {% for order_item in order.order_items.all %}
+
                                 <li
-                                    class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
-                                    Temporary amount
-                                    <span>$53.98</span>
+                                    class="list-group-item d-flex justify-content-between align-items-center {% if not forloop.last %}border-0 pb-0{% endif %} px-0">
+                                    {{ order_item.quantity }} x {{ order_item.item.name }}
+                                    <span>{{ order_item.get_total_price }}</span>
                                 </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    Shipping
-                                    <span>Gratis</span>
-                                </li>
+
+                                {% endfor %}
+
                                 <li
                                     class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3">
                                     <div>
-                                        <strong>The total amount of</strong>
-                                        <strong>
-                                            <p class="mb-0">(including VAT)</p>
-                                        </strong>
+                                        <h3 class="font-roboto text-black mb-0"
+                                            style="font-size: x-large; color: black;">Total</h3>
+
                                     </div>
-                                    <span><strong>$53.98</strong></span>
+                                    <span>
+                                        <h3 class="font-roboto text-black mb-0"
+                                            style="font-size: x-large; color: black;">{{ order.get_total_order_price }}
+                                        </h3>
+                                    </span>
                                 </li>
                             </ul>
 
-                            <button type="button" class="btn btn-primary btn-block waves-effect waves-light">go to
-                                checkout</button>
+                            <button type="button"
+                                class="btn btn-primary btn-block btn-checkout waves-effect waves-light">
+                                checkout
+                                <i class="fa fa-shopping-bag fa-lg pl-1"></i>
+                            </button>
 
                         </div>
                     </div>
                     <!-- Card -->
 
-                    <!-- Card -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-
-                            <a class="dark-grey-text d-flex justify-content-between" data-toggle="collapse"
-                                href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/cart.html#collapseExample"
-                                aria-expanded="false" aria-controls="collapseExample">
-                                Add a discount code (optional)
-                                <span><i class="fas fa-chevron-down pt-1"></i></span>
-                            </a>
-
-                            <div class="collapse" id="collapseExample">
-                                <div class="mt-3">
-                                    <div class="md-form md-outline mb-0">
-                                        <input type="text" id="discount-code" class="form-control font-weight-light"
-                                            placeholder="Enter discount code">
-                                    </div>
-                                </div>
+                    <!-- Promo code -->
+                    <form class="card p-2">
+                        <div class="input-group p-2">
+                            <input type="text" class="form-control" placeholder="Discount code"
+                                aria-label="Recipient's username" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary btn-md btn-discount waves-effect m-0"
+                                    type="button">apply</button>
                             </div>
                         </div>
-                    </div>
-                    <!-- Card -->
+                    </form>
+                    <!-- Promo code -->
 
                 </div>
                 <!--Grid column-->
@@ -181,11 +229,47 @@
             </div>
             <!--Grid row-->
 
+            {% endif %}
+
         </section>
         <!--Section: Block Content-->
 
     </div>
 </main>
 <!--Main layout-->
+
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+
+<script text="text/javascript">
+    $('.remove-item').hover(
+        function () {
+            $(this).html('<span class="red-text">remove </span><i class="fas fa-trash-alt ml-1"></i>')
+        }, function () {
+            $(this).html('<i class="fas fa-trash-alt ml-1"></i>')
+        }
+    );
+
+    $('.btn-checkout').hover(
+        function () {
+            $(this).removeClass('btn-primary')
+            $(this).addClass('btn-outline-primary')
+        }, function () {
+            $(this).removeClass('btn-outline-primary')
+            $(this).addClass('btn-primary')
+        }
+    );
+
+    $('.btn-discount').hover(
+        function () {
+            $(this).removeClass('btn-outline-primary')
+            $(this).addClass('btn-primary')
+        }, function () {
+            $(this).removeClass('btn-primary')
+            $(this).addClass('btn-outline-primary')
+        }
+    );
+
+
+</script>
 
 {% endblock content %}

@@ -82,9 +82,9 @@
                     <!-- Logout -->
                     <li class="nav-item pl-2 mb-2 mb-md-0">
                         <a href="{% url 'account_logout' %}" type="button"
-                            class="btn blue-gradient btn-md btn-navbar waves-effect waves-light">
-                            <i class="fas fa-sign-out-alt text-white"></i>
-                            <span class="clearfix d-none d-sm-inline-block text-white"> Logout </span>
+                            class="btn btn-outline-primary btn-md btn-navbar waves-effect waves-light">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="clearfix d-none d-sm-inline-block"> Logout </span>
                         </a>
                     </li>
                     <!-- Logout -->
@@ -94,9 +94,9 @@
                     <!-- Login -->
                     <li class="nav-item pl-2 mb-2 mb-md-0">
                         <a href="{% url 'account_login' %}" type="button"
-                            class="btn blue-gradient btn-md btn-navbar waves-effect waves-light">
-                            <i class="fas fa-sign-in-alt text-white"></i>
-                            <span class="clearfix d-none d-sm-inline-block text-white"> Login </span>
+                            class="btn btn-outline-primary btn-md btn-navbar waves-effect waves-light">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="clearfix d-none d-sm-inline-block "> Login </span>
                         </a>
                     </li>
                     <!-- Login -->
@@ -118,15 +118,16 @@
 
 {% block extra_scripts %}
 <script language="javascript">
+    $('.btn-navbar').attr('style', 'color: #1266f1 !important; border-color: #1266f1 !important;');
+
     $(function () {
         $(window).scroll(function () {
             if ($(this).scrollTop() > 10) {
-                //$('.navbar-brand img').attr('src', "{% static 'img/icona5_black.png' %}")
-                //$('.btn-navbar').addClass('purple-gradient')
+                //$('.btn-navbar').attr('style', 'color: #1266f1 !important; border-color: #1266f1 !important;');
                 //$('.btn-navbar').removeClass('aqua-gradient')
             }
             else {
-                //$('.navbar-brand img').attr('src', "{% static 'img/icona5_white.png' %}")
+                //$('.btn-navbar').attr('style', 'color: #1266f1 !important; border-color: #1266f1 !important;');
                 //$('.btn-navbar').addClass('aqua-gradient')
                 //$('.btn-navbar').removeClass('purple-gradient')
             }

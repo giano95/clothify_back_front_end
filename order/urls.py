@@ -9,7 +9,8 @@ from order.views import (
 app_name = 'order'
 urlpatterns = [
     path('order/', OrderView.as_view(), name='order'),
-    path('add_order_item/<pk>/', AddOrderItemView.as_view(), name='add_order_item'),
+    path('add_order_item/<pk>/<str:sz>/<q>/',
+         AddOrderItemView.as_view(), name='add_order_item'),
     path('update_order_item/<pk>/<q>/',
          UpdateOrderItemView.as_view(), name='update_order_item'),
 ]

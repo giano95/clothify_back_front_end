@@ -12,9 +12,48 @@
         padding-left: 25px !important;
     }
 
+    textarea {
+        border-radius: 4px;
+        border: 1px solid #dadce0;
+        padding: 10px;
+    }
+
     textarea:focus:invalid:focus {
         border: 2px solid #4285f4;
         border-radius: 4px;
+    }
+
+    textarea:focus:not([readonly])+label {
+        color: #4285f4
+    }
+
+    .select-box {
+        width: 100%;
+        margin: 0 auto;
+        color: #757575;
+        padding: 7px;
+        background-color: #fff;
+        box-sizing: border-box;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        outline: 0;
+        box-shadow: none;
+        font-size: 1rem;
+    }
+
+    .select-box:focus {
+        border: 2px solid #4285f4;
+    }
+</style>
+
+<style>
+    div.md-form input {
+        padding: 7px;
+        width: 100%;
+    }
+
+    div.md-form textarea {
+        width: 100%;
     }
 </style>
 <style>
@@ -96,12 +135,10 @@
     }
 </style>
 
-
-
 <div class="container add-item-container pt-7">
 
 
-    <h2 class="text-center mb-5">Create post</h2>
+    <h2 style="margin-top: 3cm" class="text-center mb-5">Create post</h2>
 
     <!--Grid column-->
     <div class="row">
@@ -109,52 +146,49 @@
         <form style="width: 100%" method="POST" class="form-group" enctype="multipart/form-data" id="formupload">
             {% csrf_token %}
 
+
             <!-- itemForm -->
             {{ itemForm.management_form }}
-            <div class="md-form md-outline mt-0 col-lg-4">
+            <div class="md-form md-outline mt-0 col-4">
                 {{ itemForm.name }}
                 <label for="name">Title</label>
             </div>
 
-
-            <div class="col-lg-12">
-                <div class="row">
-                    <div class="col-lg-8">
-                        <div class="row">
-                            <div style=" border-radius: 4px;" class="md-form md-outline mt-0 col-lg-12">
-                                {{ itemForm.description }}
-                                <label for="description">Description</label>
-                            </div>
+            <div style="border-radius: 4px;" class="md-form md-outline mt-0 col-lg-12">
+                {{ itemForm.description }}
+                <label for="description">Description</label>
+            </div>
 
 
-                            <div class="md-form md-outline mt-0 col-lg-6">
-                                {{ itemForm.price }}
-                                <label for="price">Price</label>
-                            </div>
+            <div class="md-form md-outline mt-0 col-4">
+                {{ itemForm.price }}
+                <label for="price">Price</label>
+            </div>
 
-                            <div class="md-form md-outline mt-0 col-lg-6">
-                                {{ itemForm.quantity }}
-                                <label for="quantity">Quantity</label>
-                            </div>
+            <hr style="margin-top: 0px">
 
+            <div class="row">
+                <div class="col-6 d-block my-3">
+                    <p class="text-center">Select colors</p>
+
+                    <select style="height: 305px;" class="select-box" name="{{ itemForm.color.name }}" multiple>
+                        {% for instance in itemForm.color.field.queryset %}
+                        <option style="padding-top: 5px; padding-bottom: 5px;" value="{{ instance.pk }}">
+                            {{ instance.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 d-block my-3">
+                    <p class="text-center">Choose a category</p>
+                    <div>
+                        {% for value, name in itemForm.fields.category.choices %}
+                        <div style="padding-top: 5px; padding-bottom: 5px;" class="custom-control custom-radio">
+                            <input id="{{ name }}" name="category" type="radio" class="custom-control-input"
+                                value="{{value}}" required>
+                            <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
                         </div>
-                    </div>
-
-                    <div class="col-lg-4">
-                        <hr style="margin-top: 0px">
-                        <div class="d-block my-3 ">
-                            <p class="text-center">Choose a category</p>
-                            <div>
-                                {% for value, name in itemForm.fields.category.choices %}
-                                <div style="    padding-top: 5px; padding-bottom: 5px;"
-                                    class="custom-control custom-radio">
-                                    <input id="{{ name }}" name="category" type="radio" class="custom-control-input"
-                                        value="{{value}}" required>
-                                    <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -189,15 +223,18 @@
                 {% endfor %}
             </div>
 
-            {{ itemForm.color }}
-
+            <!-- Formset 2 -->
             <br>
 
             {{ formset2.management_form }}
-            {% for form in formset2 %}
 
-            {{ form }}
-
+            {% for form, size in list_formset2 %}
+            <div style="padding-left:0px" class="col-6 itemquantitysize-container" id="itemquantitysize-container">
+                <p class="size" style="display:none">{{ size.0 }}</p>
+                {{ form.size }}
+                <p style=" display: inline-block; width: 250px;"> - Select a quantity for size {{ size.0 }}: </p>
+                {{ form.quantity }}
+            </div>
             {% endfor %}
 
             <div style="margin-top: 30px;" class="text-center pb-2">
@@ -213,6 +250,23 @@
 <script>
     (function ($) {
         $(document).ready(function () {
+
+
+            //Set formset2 qntsz
+
+            var container = $(".itemquantitysize-container")
+            container.each(function (index) {
+                var size = $(this).find('.size').text()
+                if (size) {
+                    var check_sz = $(this).find('select option')
+                    check_sz.filter(function () {
+                        return $(this).text() == size;
+                    }).prop('selected', true);
+                    $(this).find('select').hide()
+                }
+                $(this).find('input[type=number]').val("0")
+            });
+
 
             uploadImage()
 
@@ -257,43 +311,51 @@
                 uploader.on('change', function () {
                     var reader = new FileReader()
                     reader.onload = function (event) {
-                        button.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        images.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        button.hide()
                     }
                     reader.readAsDataURL(uploader[0].files[0])
                 })
                 uploader_0.on('change', function () {
                     var reader = new FileReader()
                     reader.onload = function (event) {
-                        button_0.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        images_0.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        button_0.hide()
                     }
                     reader.readAsDataURL(uploader_0[0].files[0])
                 })
                 uploader_1.on('change', function () {
                     var reader = new FileReader()
                     reader.onload = function (event) {
-                        button_1.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        images_1.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        button_1.hide()
                     }
                     reader.readAsDataURL(uploader_1[0].files[0])
                 })
                 uploader_2.on('change', function () {
                     var reader = new FileReader()
                     reader.onload = function (event) {
-                        button_2.replaceWith('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        images_2.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        button_2.hide()
                     }
                     reader.readAsDataURL(uploader_2[0].files[0])
                 })
 
                 images.on('click', '.img', function () {
                     $(this).remove()
+                    button.show()
                 })
                 images_0.on('click', '.img', function () {
                     $(this).remove()
+                    button_0.show()
                 })
                 images_1.on('click', '.img', function () {
                     $(this).remove()
+                    button_1.show()
                 })
                 images_2.on('click', '.img', function () {
                     $(this).remove()
+                    button_2.show()
                 })
 
             }
@@ -303,5 +365,6 @@
     })(jQuery)
 
 </script>
+
 
 {% endblock %}

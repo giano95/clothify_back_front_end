@@ -12,6 +12,7 @@ from core.views import (
     get_regions,
     get_cities,
     permission_denied,
+    payment_succeeded
 )
 
 
@@ -20,7 +21,8 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('shop/', ShopView.as_view(), name="shop"),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
-    path('payment/<payment_option>/', PaymentView.as_view(), name='payment'),
+    path('payment/', PaymentView.as_view(), name='payment'),
+    path('payment_succeeded/', payment_succeeded, name='payment_succeeded'),
     path('contact/', ContactView.as_view(), name="contact"),
     path('secret/', secret, name='secret'),
     path('connect/get_oauth_url/', get_oauth_url, name='get_oauth_url'),

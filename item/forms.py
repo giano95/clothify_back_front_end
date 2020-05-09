@@ -1,6 +1,15 @@
 from django import forms
-from django.forms import TextInput, Select, PasswordInput, FileInput, Textarea
-from item.models import Item, ItemCategory, ItemColor, ItemImage, ItemLabel, ItemSize, ItemQuantitySize
+from django.forms import TextInput, Select, PasswordInput, FileInput, Textarea, NumberInput
+from item.models import (
+    Item,
+    ItemCategory,
+    ItemColor,
+    ItemImage,
+    ItemLabel,
+    ItemSize,
+    ItemQuantitySize,
+    ItemReview
+)
 
 
 class ItemImageForm(forms.ModelForm):
@@ -33,3 +42,16 @@ class ItemForm(forms.ModelForm):
         model = Item
         fields = ['name', 'description',
                   'category', 'price', 'img', 'color']
+
+
+class ItemReviewForm(forms.ModelForm):
+    title = forms.CharField(max_length=100, help_text='title', required=True)
+    comment = forms.Textarea()
+    vote = forms.IntegerField(
+        required=True, widget=NumberInput(attrs={'min': '0', 'max': '5'}))
+    img = forms.ImageField(required=False, widget=FileInput(
+        attrs={'class': 'input_prova'}))
+
+    class Meta:
+        model = ItemReview
+        fields = ['title', 'comment', 'vote', 'img']

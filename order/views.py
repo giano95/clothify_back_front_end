@@ -10,29 +10,33 @@ from django.utils.decorators import method_decorator
 @method_decorator(login_required, name='dispatch')
 class OrderView(View):
     def get(self, *args, **kwargs):
-        order = Order.objects.filter(
-            user=self.request.user, is_ordered=False)
-        if not order.exists():
-            return render(self.request, 'order-summary2.html', {'order': None})
-        else:
-            return render(self.request, 'order-summary2.html', {'order': order[0]})
+        try:
+            order = Order.objects.filter(
+                user=self.request.user, is_ordered=False)[0]
+        except Order.DoesNotExist and IndexError:
+            order = None
+
+        return render(self.request, 'order-summary.html', {'order': order})
 
 
 @method_decorator(login_required, name='dispatch')
 class AddOrderItemView(View):
     def get(self, *args, **kwargs):
 
-        item = Item.objects.filter(pk=kwargs['pk'])
+        pk = kwargs['pk']
+        item_size = ItemSize.objects.get(tag=kwargs['sz'])
+        q = int(kwargs['q'])
+
+        item = Item.objects.filter(pk=pk)
         if not item.exists():
-            print('this item doesn\'t exists')
-            return redirect('item:item', pk=kwargs['pk'])
+            return redirect('item:item', pk=pk)
         item = item[0]
 
         order_item, _ = OrderItem.objects.get_or_create(
             item=item,
             user=self.request.user,
             is_ordered=False,
-            item_size=ItemSize.objects.get(tag=kwargs['sz'])
+            item_size=item_size
         )
         order = Order.objects.filter(
             user=self.request.user,
@@ -43,21 +47,20 @@ class AddOrderItemView(View):
                 user=self.request.user,
                 ordered_date=timezone.now()
             )
-            order_item.quantity = int(kwargs['q'])
+            order_item.quantity = q
             order_item.save()
             order.order_items.add(order_item)
+            order.save()
         else:
             order = order[0]
-            if order.order_items.filter(item__pk=kwargs['pk']).exists():
-                order_item.quantity += int(kwargs['q'])
+            if order.order_items.filter(item__pk=pk, item_size=item_size).exists():
+                order_item.quantity += q
                 order_item.save()
             else:
-                order_item.quantity = int(kwargs['q'])
+                order_item.quantity = q
                 order_item.save()
-                print(kwargs['q'])
                 order.order_items.add(order_item)
-        print('item added on the order successfully')
-        return redirect('item:item', pk=kwargs['pk'])
+        return redirect('item:item', pk=pk)
 
     def post(self, *args, **kwargs):
         pass

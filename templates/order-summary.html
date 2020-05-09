@@ -1,114 +1,274 @@
-{% extends "base.html" %}
+{% extends "base-standard.html" %}
+
+{% load staticfiles %}
 {% load my_template_tags %}
 
-{% block head_title %}MarketPlace{% endblock %}
+{% block head_title %}Clothify{% endblock %}
 
+{% block body_class  %}grey lighten-5{% endblock body_class %}
 
 {% block content %}
 
-<body>
 
-    <!--Main layout-->
-    <main>
+<!--Main layout-->
+<main>
 
-        <div class="container pt-7">
+    <div class="container" style="margin-top: 3.5cm; margin-bottom: 3.5cm;">
 
-            <h1>Cart:</h1>
-            {% if order.get_total_order_price == 0 or not order %}
-            <p>your cart is empty</p>
+        <!--Section: Block Content-->
+        <section class="mt-5 mb-4">
+
+            {% if order.empty or not order %}
+
+            <h1 class="text-center font-roboto mb-5" style="font-size: 4.6em; margin-top: 6cm;">
+                Your cart empty
+                <span class="fa-stack">
+                    <i class="fas fa-shopping-cart fa-stack-1x"></i>
+                    <i class="far fa-circle fa-stack-1x" style="color:Tomato; font-size: 2em !important;"></i>
+                    <i class="fas fa-slash fa-stack-1x" style="color:Tomato; font-size: 1.1em !important;"></i>
+                </span>
+            </h1>
+
             {% else %}
 
-            {% for order_item in order.order_items.all %}
-            <!-- Card Regular -->
-            <div class="card card-cascade mb-3">
-                <div class="row no-gutters wow fadeIn">
-                    <div class="col-md-2">
-                        <!-- Card image -->
-                        <div class="view view-cascade overlay">
-                            <img class="card-img-top contain-240" src="{{ order_item.item.img.url }}">
-                            <a>
-                                <div class="mask rgba-white-slight"></div>
+            <h1 class="text-center font-roboto mb-5" style="font-size: 4.6em;">Cart</h1>
+
+            <!--Grid row-->
+            <div class="row">
+
+                <!--Grid column-->
+                <div class="col-lg-8">
+
+                    <!-- OrderItems Card -->
+                    <div class="card wish-list mb-4">
+                        <div class="card-body">
+
+                            {% for order_item in order.order_items.all %}
+
+                            <!-- OrderItem -->
+                            <div class="row mb-4">
+
+                                <!-- Image -->
+                                <div class="col-md-5 col-lg-3 col-xl-3">
+                                    <div class="view zoom overlay z-depth-1 rounded mb-3 mb-md-0">
+                                        <img class="img-fluid w-100" src="{{ order_item.item.img.url }}" alt="Sample"
+                                            style="width: 100% !important; height: auto !important;">
+                                        <a href="{{ order_item.item.get_url }}">
+                                            <div class="mask waves-effect waves-light">
+                                                <div class="mask rgba-black-slight waves-effect waves-light"></div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- Image -->
+
+                                <!-- Body -->
+                                <div class="col-md-7 col-lg-9 col-xl-9" style="position: relative;">
+
+                                    <div class="row">
+                                        <div class="col-8">
+
+                                            <h3 class="font-roboto mb-1 mt-0 pt-0"
+                                                style="font-size: xx-large; color: black !important;">
+                                                {{ order_item.item.name }}
+                                            </h3>
+
+                                            <p class="mb-2 text-muted font-roboto">
+                                                {{ order_item.item.category.name }}
+                                            </p>
+                                            <p class="mb-2 text-muted font-roboto" style="text-transform:capitalize;">
+                                                {% for color in order_item.item.color.all %}
+                                                {{ color.name }}{% if not forloop.last %},{% endif %}
+                                                {% endfor %}
+                                            </p>
+                                            <p class="mb-2 text-muted font-roboto">
+                                                {{ order_item.item_size.tag }}
+                                            </p>
+
+                                        </div>
+                                        <div class="col-4 pt-1 text-right">
+                                            <a href="{% url 'order:update_order_item' order_item.item.id 0 %}"
+                                                type="button" class="card-link-secondary font-roboto remove-item"
+                                                style="font-size: 1em;">
+                                                <i class="fas fa-trash-alt ml-1 "></i>
+                                            </a>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex" style="position: absolute; bottom: 0">
+
+                                        <div class="def-number-input number-input safari_only mb-0 w-100">
+                                            <button
+                                                onclick="window.location.href='{% url 'order:update_order_item' order_item.item.id order_item.quantity|add:'-1' %}';"
+                                                class="minus "></button>
+                                            <input class="quantity" min="0" name="quantity"
+                                                value="{{ order_item.quantity }}" type="number">
+                                            <button
+                                                onclick="window.location.href='{% url 'order:update_order_item' order_item.item.id order_item.quantity|add:'1' %}';"
+                                                class=" plus">
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                    <div class="d-flex" style="position: absolute; bottom: 0; right: 0.8em;">
+
+                                        <p class="pb-0 mb-0 font-roboto-bold text-primary" style="font-size: 1.4em;">
+                                            <small
+                                                class="text-muted">{% if order_item.quantity > 1 %}{{ order_item.quantity }}
+                                                x
+                                                {% endif %}</small>
+                                            <span><strong>${{ order_item.item.price }}</strong></span>
+                                        </p>
+
+                                    </div>
+
+                                </div>
+                                <!-- Body -->
+
+                            </div>
+                            <!-- OrderItem -->
+
+                            <hr class="mb-4">
+
+                            {% endfor %}
+
+                            <!-- Credit Card Info -->
+                            <div class="d-flex justify-content-between">
+
+                                <div class="text-primary mb-0">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span> You can pay with your favorite credit card</span>
+                                </div>
+
+                                <div>
+                                    <img class="mr-2" width="45px" src="{% static 'img/credit-card/visa.svg' %}"
+                                        alt="Visa">
+                                    <img class="mr-2" width="45px" src="{% static 'img/credit-card/amex.svg' %}"
+                                        alt="American Express">
+                                    <img class="mr-2" width="45px" src="{% static 'img/credit-card/mastercard.svg' %}"
+                                        alt="Mastercard">
+                                </div>
+
+                            </div>
+                            <!-- Credit Card Info -->
+
+                        </div>
+                    </div>
+                    <!-- OrderItems Card -->
+
+                </div>
+                <!--Grid column-->
+
+                <!--Grid column-->
+                <div class="col-lg-4">
+
+                    <!-- Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+
+                            <h3 class="font-roboto text-black mb-3" style="font-size: xx-large; color: black;">Summary
+                            </h3>
+
+                            <ul class="list-group list-group-flush">
+                                {% for order_item in order.order_items.all %}
+
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center {% if not forloop.last %}border-0 pb-0{% endif %} px-0">
+                                    <span>
+                                        {{ order_item.quantity }} x {{ order_item.item.name }}
+                                        <span class="small muted">({{ order_item.item_size }})</span>
+                                    </span>
+                                    <span>{{ order_item.get_total_price }}</span>
+                                </li>
+
+                                {% endfor %}
+
+                                <li
+                                    class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3">
+                                    <div>
+                                        <h3 class="font-roboto text-black mb-0"
+                                            style="font-size: x-large; color: black;">Total</h3>
+
+                                    </div>
+                                    <span>
+                                        <h3 class="font-roboto text-black mb-0"
+                                            style="font-size: x-large; color: black;">{{ order.get_total_order_price }}
+                                        </h3>
+                                    </span>
+                                </li>
+                            </ul>
+                            <a href="{% url 'core:checkout' %}">
+                                <button type="button"
+                                    class="btn btn-primary btn-block btn-checkout waves-effect waves-light">
+                                    checkout
+                                    <i class="fa fa-shopping-bag fa-lg pl-1"></i>
+                                </button>
                             </a>
                         </div>
                     </div>
-                    <div class="col-md-8">
-                        <!-- Card content -->
-                        <div class="card-body card-body-cascade">
+                    <!-- Card -->
 
-                            <!-- Title -->
-                            <h5 class="font-weight-bold card-title mt-2">{{ order_item.item.name }}</h5>
-                            Price: {{ order_item.item.get_price }} $
-                            <br>
-                            <small><a href="{% url 'order:update_order_item' order_item.item.id '0' %}"
-                                    class="text-danger">remove</a></small>
-                            <br>
-
-
-
-                            <!-- Button -->
-                            <button class="btn btn-primary btn-sm ml-0 mt-4 dropdown-toggle"
-                                id="quantity-dropdown-button" aria-haspopup="true" aria-expanded="false"
-                                data-toggle="dropdown" type="button" style="text-transform: none;">
-                                Quantity: {{ order_item.quantity }} </button>
-
-                            <div class="dropdown-menu" aria-labelledby="quantity-dropdown-button">
-                                <a class="dropdown-item"
-                                    href="{% url 'order:update_order_item' order_item.item.id '1' %}">1</a>
-                                <a class="dropdown-item"
-                                    href="{% url 'order:update_order_item' order_item.item.id '2' %}">2</a>
-                                <a class="dropdown-item"
-                                    href="{% url 'order:update_order_item' order_item.item.id '3' %}">3</a>
-                                <a class="dropdown-item"
-                                    href="{% url 'order:update_order_item' order_item.item.id '4' %}">4</a>
-                                <a class="dropdown-item"
-                                    href="{% url 'order:update_order_item' order_item.item.id '5' %}">5</a>
+                    <!-- Promo code -->
+                    <form class="card p-2">
+                        <div class="input-group p-2">
+                            <input type="text" class="form-control" placeholder="Discount code"
+                                aria-label="Recipient's username" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary btn-md btn-discount waves-effect m-0"
+                                    type="button">apply</button>
                             </div>
-
                         </div>
-
-                    </div>
-                    <div class="col-md-2 p-4">
-                        <!-- Total Price -->
-                        <div class="text-right">
-                            <h5>{{ order_item.get_total_price }} $</h5>
-                        </div>
-
-                    </div>
+                    </form>
+                    <!-- Promo code -->
 
                 </div>
-            </div>
-            <!-- Card Regular-->
-
-            {% endfor %}
-
-
-            <div class="row wow fadeIn">
-                <div class="col-md-8"></div>
-                <div class="col-md-2 text-right">
-                    <h4>Total: </h4>
-                </div>
-                <div class="col-md-2">
-                    <h4>{{ order.get_total_order_price }} $</h4>
-                </div>
+                <!--Grid column-->
 
             </div>
+            <!--Grid row-->
+
+            {% endif %}
+
+        </section>
+        <!--Section: Block Content-->
+
+    </div>
+</main>
+<!--Main layout-->
+
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+
+<script text="text/javascript">
+    $('.remove-item').hover(
+        function () {
+            $(this).html('<span class="red-text">remove </span><i class="fas fa-trash-alt ml-1"></i>')
+        }, function () {
+            $(this).html('<i class="fas fa-trash-alt ml-1"></i>')
+        }
+    );
+
+    $('.btn-checkout').hover(
+        function () {
+            $(this).removeClass('btn-primary')
+            $(this).addClass('btn-outline-primary')
+        }, function () {
+            $(this).removeClass('btn-outline-primary')
+            $(this).addClass('btn-primary')
+        }
+    );
+
+    $('.btn-discount').hover(
+        function () {
+            $(this).removeClass('btn-outline-primary')
+            $(this).addClass('btn-primary')
+        }, function () {
+            $(this).removeClass('btn-primary')
+            $(this).addClass('btn-outline-primary')
+        }
+    );
 
 
-            <div class="text-center">
-                <a href="{% url 'core:home' %}">
-                    <button class="btn btn-default btn-md my-0 p" type="submit">Continue Shoppig</button>
-                </a>
-                <a href="{% url 'core:checkout' %}">
-                    <button class="btn btn-primary btn-md my-0 p" type="submit">Procede to checkout</button>
-                </a>
-            </div>
+</script>
 
-        </div>
-        {% endif %}
-        </div>
-
-    </main>
-    <!--Main layout-->
-
-</body>
 {% endblock content %}

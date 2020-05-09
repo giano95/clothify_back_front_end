@@ -6,106 +6,131 @@
 {% block head_title %}Contact{% endblock %}
 
 {% block content %}
-<style>
-    div.contact-container {
-        margin-top: 4.5cm !important;
-    }
-</style>
 
-<body class="skin-light" aria-busy="true">
-    <!--Main layout-->
-    <main>
-        <div class="container contact-container" style="margin-top: 3cm;">
+<!--Main layout-->
+<main>
 
-            <!--Section: Content-->
-            <section class="text-center text-lg-left dark-grey-text mb-4">
+    <div class="container" style="margin-top: 4.5cm;">
 
-                <!--Grid row-->
-                <div class="row d-flex justify-content-center">
+        <!--Section: Content-->
+        <section class="text-center text-lg-left dark-grey-text mb-4">
 
-                    <!--Grid column-->
-                    <div class="col-md-9">
+            <!--Grid row-->
+            <div class="row d-flex justify-content-center">
 
-                        <!--Grid row-->
-                        <div class="row">
+                <!--Grid column-->
+                <div class="col-md-10">
 
-                            <!--Grid column-->
-                            <div class="col-lg-5 col-md-12 mb-0 mb-md-0">
+                    <h1 class="text-center font-roboto mb-5" style="font-size: 4.2em;">Clothify's House</h1>
 
-                                <h4 class="mb-3"><strong>Office</strong></h4>
+                    <style>
+                        .map-container {
+                            height: 300px;
+                            position: relative;
+                        }
 
-                                <hr>
+                        .map-container iframe {
+                            left: 0;
+                            top: 0;
+                            height: 100%;
+                            width: 100%;
+                            position: absolute;
+                        }
+                    </style>
 
-                                <p class="mb-1"><strong>Address:</strong> </p>
+                    <!--Google map-->
+                    <div id="map-container-google-1" class="z-depth-1 map-container mb-5">
 
-                                <p class="mb-1">Via Giovanni Boccaccio, 101</p>
-                                <p class="mb-1">Sant' Antonio (MO)</p>
-                                <p class="mb-1">Italia</p>
+                        <iframe
+                            src="https://maps.google.com/maps?width=700&amp;height=400&amp;hl=en&amp;q=Via%20Boccaccio%20101%2C%20Pavullo%2C%20Modena%2C%20+(Clothify)&amp;ie=UTF8&amp;t=&amp;z=14&amp;iwloc=B&amp;output=embed"
+                            frameborder="0" style="border:0" allowfullscreen="" scrolling="no" marginheight="0"
+                            marginwidth="0">
+                        </iframe>
+                        <div
+                            style="position: absolute;width: 80%;bottom: 10px;left: 0;right: 0;margin-left: auto;margin-right: auto;color: #000;text-align: center;">
+                            <small style="line-height: 1.8;font-size: 2px;background: #fff;">Powered by <a
+                                    href="http://www.googlemapsgenerator.com/da/">googlemapsgen (da)</a> & <a
+                                    href="https://iamsterdamcard.it/">iamsterdamcard</a></small></div>
+                        <style>
+                            #gmap_canvas img {
+                                max-width: none !important;
+                                background: none !important
+                            }
+                        </style>
+                        <br />
+                    </div>
+                    <!--Google Maps-->
 
-                                <hr>
+                    <!--Grid row-->
+                    <div class="row">
 
-                                <p class="mb-1"><strong>Numero di telefono:</strong> </p>
+                        <!--Grid column-->
+                        <div class="col-lg-5 col-md-12 mb-0 mb-md-0">
 
-                                <p class="mb-1">(+39) 3347840776</p>
 
-                            </div>
-                            <!--Grid column-->
+                            <hr>
 
-                            <!--Grid column-->
-                            <div class="col-lg-7 col-md-12 mb-4 mb-md-0 text-center">
+                            <p class="mb-1">Via Giovanni Boccaccio, 101</p>
+                            <p class="mb-1">Sant' Antonio (MO)</p>
+                            <p class="mb-1">Italia</p>
 
-                                <!-- Form -->
-                                <form class="form-contact" method="post">
-                                    {% csrf_token %}
+                            <hr>
 
-                                    <div class="md-form md-outline mt-3">
-                                        {{ form.form_email }}
-                                        <label for="form_email">E-mail</label>
-                                    </div>
+                            <p class="mb-1"><span style="font-weight: 400;">Gianelli Marco: </span>(+39) 3347840776</p>
+                            <p class="mb-1"><span style="font-weight: 400;">Enrico Petrucci: </span>(+39) 3894308922</p>
+                        </div>
+                        <!--Grid column-->
 
-                                    <div class="md-form md-outline">
-                                        {{ form.subject }}
-                                        <label for="subject">Subject</label>
-                                    </div>
+                        <!--Grid column-->
+                        <div class="col-lg-7 col-md-12 mb-4 mb-md-0 text-center">
 
-                                    <div class="md-form md-outline">
-                                        {{ form.message }}
-                                        <label for="message">Your message</label>
-                                    </div>
+                            <!-- Form -->
+                            <form class="form-contact" method="post">
+                                {% csrf_token %}
 
-                                    <div class="form-actions">
-                                        <button style="float: right" type="submit"
-                                            class="btn btn-primary btn-md ml-0 waves-effect waves-light">Send</button>
-                                    </div>
+                                <div class="md-form md-outline mt-3">
+                                    {{ form.form_email }}
+                                    <label for="form_email">E-mail</label>
+                                </div>
 
-                                </form>
-                                <!-- Form -->
+                                <div class="md-form md-outline">
+                                    {{ form.subject }}
+                                    <label for="subject">Subject</label>
+                                </div>
 
-                            </div>
-                            <!--Grid column-->
+                                <div class="md-form md-outline">
+                                    {{ form.message }}
+                                    <label for="message">Your message</label>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit"
+                                        class="btn btn-primary btn-md ml-0 waves-effect waves-light">Send</button>
+                                </div>
+
+                            </form>
+                            <!-- Form -->
+
 
                         </div>
-                        <!--Grid row-->
-
-                        <!--Google map-->
-                        <div class="container-img mb-5">
-                            <img style="width:100%; height:auto;" src="{% static '/img/map.png' %}"></img>
-                        </div>
-                        <!--Google Maps-->
+                        <!--Grid column-->
 
                     </div>
-                    <!--Grid column-->
+                    <!--Grid row-->
 
                 </div>
-                <!--Grid row-->
+                <!--Grid column-->
+
+            </div>
+            <!--Grid row-->
 
 
-            </section>
-            <!--Section: Content-->
+        </section>
+        <!--Section: Content-->
 
 
-        </div>
-    </main>
-    <!--Main layout-->
-</body>
+    </div>
+</main>
+<!--Main layout-->
+
 {% endblock content %}

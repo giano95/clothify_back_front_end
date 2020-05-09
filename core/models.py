@@ -13,6 +13,8 @@ class User(AbstractUser):
     user_type = models.CharField(
         choices=TYPE_CHOICES, max_length=10)
     connected_account_id = models.TextField(blank=True, null=True)
+    profile_img = models.ImageField(
+        upload_to='user/img/', default='user/img/default-user-profile-img.png')
 
     class Meta:
         permissions = [

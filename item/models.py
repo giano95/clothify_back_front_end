@@ -25,11 +25,20 @@ class Item(models.Model):
     img = models.ImageField(upload_to='item/img/')
     images = models.ManyToManyField('item.ItemImage')
     color = models.ManyToManyField('item.ItemColor')
-    # size = models.ManyToManyField('item.ItemSize')
     quantities_size = models.ManyToManyField('item.ItemQuantitySize')
     label = models.ForeignKey(
         'item.ItemLabel', on_delete=models.CASCADE, null=True, blank=True)
     not_discounted_price = models.FloatField(blank=True, null=True)
+
+    def dec_quantity_size(self, sz, q):
+        for quantity_size in self.quantities_size.all():
+            if quantity_size.size == sz:
+                print(quantity_size.quantity)
+                quantity_size.quantity = quantity_size.quantity - q
+                quantity_size.save()
+
+    def get_reviews(self):
+        return ItemReview.objects.filter(item=self)
 
     @property
     def reviews_vote(self):
@@ -86,13 +95,19 @@ class ItemReview(models.Model):
         (4, 4),
         (5, 5),
     )
+
+    date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    title = models.CharField(max_length=100, blank=True, null=True)
     comment = models.TextField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
     vote = models.IntegerField(choices=VOTE_CHOICES)
-    img = models.ImageField(upload_to='item/category/img/',
+    img = models.ImageField(upload_to='item/review/img/',
                             blank=True, null=True)
     item = models.ForeignKey('item.Item', on_delete=models.CASCADE)
+
+    def get_only_date(self):
+        return self.date.strftime('%d %B %Y')
 
     def __str__(self):
         return self.user.__str__() + '\'s review of the ' + self.item.__str__() + 'item!'

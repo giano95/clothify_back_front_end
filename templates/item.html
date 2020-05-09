@@ -5,103 +5,307 @@
 
 {% block head_title %}Clothify{% endblock %}
 
-{% block extra_style  %}
-{% endblock extra_style %}
 
 {% block content %}
 <style>
+    #div-container-change-item {
+        margin-bottom: 60px;
+    }
+
+    #div-container-change-item div {
+        margin-top: 30px;
+    }
+
     div.item-container {
         margin-top: 4.5cm !important;
     }
+
+    #id_vote {
+        display: none;
+    }
+
+    div.md-form.md-outline label {
+        padding-left: 25px !important;
+    }
+
+    textarea {
+        border-radius: 4px;
+        border: 1px solid #dadce0;
+        padding: 10px;
+    }
+
+    textarea:focus:invalid:focus {
+        border: 2px solid #4285f4;
+        border-radius: 4px;
+    }
+
+    textarea:focus:not([readonly])+label {
+        color: #4285f4
+    }
+
+    div.md-form input {
+        padding: 7px;
+        width: 100%;
+    }
+
+    div.md-form textarea {
+        width: 100%;
+    }
+
+    #similar-post-view {
+        position: relative;
+        height: 380px;
+    }
+
+    #similar-post-view img {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    #similar-post-zoom-view {
+        position: relative;
+        height: 380px;
+    }
+
+    #similar-post-zoom-view img {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    #image-review {
+        position: relative;
+        height: 200px;
+        margin-left: 100px;
+    }
+
+    #image-review img {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .color-ball {
+        width: 17px;
+        height: 17px;
+        margin-left: 5px;
+        margin-right: 5px;
+        border-radius: 20px;
+        border: 1px solid black;
+        display: inline-block;
+        vertical-align: top;
+    }
 </style>
+
+<style>
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        padding-top: 100px;
+        /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4);
+        /* Black w/ opacity */
+
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        margin-top: 350px !important;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    /* The Close Button */
+    .close {
+        text-align: right;
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
+<style>
+    /* .images {
+        display: flex;
+        flex-wrap: wrap;
+    } */
+    .images .img,
+    .images .pic {
+        flex-basis: 100%;
+
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .images .img {
+        width: 100%;
+        height: 246px;
+        background-size: cover;
+        margin-right: 10px;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .images .img:nth-child(3n) {
+        margin-right: 0;
+    }
+
+    .images .img span {
+        display: none;
+        text-transform: capitalize;
+        z-index: 2;
+    }
+
+    .images .img::after {
+        content: '';
+        width: 100%;
+        height: 100%;
+        transition: opacity .1s ease-in;
+        border-radius: 4px;
+        opacity: 0;
+        position: absolute;
+    }
+
+    .images .img:hover::after {
+        display: block;
+        background-color: #000;
+        opacity: .5;
+    }
+
+    .images .img:hover span {
+        display: block;
+        color: #fff;
+    }
+
+    .images .pic {
+        background-color: #F5F7FA;
+        align-self: center;
+        text-align: center;
+        text-transform: uppercase;
+        color: #848EA1;
+        font-size: 35px;
+        cursor: pointer;
+        vertical-align: middle;
+        line-height: 246px;
+        height: 246px;
+    }
+
+    .upload-image-container input {
+        display: none !important;
+    }
+</style>
+
 
 <!--Main layout-->
 <main>
     <div class="container item-container">
 
+        {% if request.user == item.owner %}
+        <div id="div-container-change-item" class="text-center">
+            <span class="close" id="close-div" style="margin-top: -50px;">&times;</span>
+            <h3 class="font-roboto">Do you want to change or delete your item?</h3>
+            <div>
+                <button type="button" class="btn btn-success waves-effect waves-light" id="change"
+                    style="margin-right:35px">CHANGE</button>
+                <button type="button" class="btn btn-danger waves-effect waves-light" id="delete"
+                    style="margin-left: 35px">DELETE</button>
+            </div>
+        </div>
+
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content text-center">
+                <span class="close" id="close-modal">&times;</span>
+                <div>
+                    <p>Are you sure you want to delete this item?</p>
+                    <button type="button" class="btn btn-light waves-effect waves-light" id="yes-delete">YES</button>
+                    <button type="button" class="btn btn-light waves-effect waves-light" id="no-delete">NO</button>
+                </div>
+            </div>
+
+        </div>
+
+        <hr id="hr-hide">
+        {% endif %}
+
         <!--Section: Block Content-->
         <section class="mb-5">
 
             <div class="row">
-                <div class="col-md-6 mb-4 mb-md-0">
 
-                    <div id="mdb-lightbox-ui">
-                        <!-- Root element of PhotoSwipe. Must have class pswp. -->
-                        <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
 
-                            <!-- Background of PhotoSwipe. 
-		         It's a separate element, as animating opacity is faster than rgba(). -->
-                            <div class="pswp__bg"></div>
-
-                            <!-- Slides wrapper with overflow:hidden. -->
-                            <div class="pswp__scroll-wrap">
-
-                                <!-- Container that holds slides. PhotoSwipe keeps only 3 slides in DOM to save memory. -->
-                                <!-- don't modify these 3 pswp__item elements, data is added later on. -->
-                                <div class="pswp__container">
-                                    <div class="pswp__item"></div>
-                                    <div class="pswp__item"></div>
-                                    <div class="pswp__item"></div>
-                                </div>
-
-                                <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
-                                <div class="pswp__ui pswp__ui--hidden">
-
-                                    <div class="pswp__top-bar">
-
-                                        <!--  Controls are self-explanatory. Order can be changed. -->
-
-                                        <div class="pswp__counter"></div>
-
-                                        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
-
-                                        <!--<button class="pswp__button pswp__button--share" title="Share"></button>-->
-
-                                        <button class="pswp__button pswp__button--fs"
-                                            title="Toggle fullscreen"></button>
-
-                                        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
-
-                                        <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
-                                        <!-- element will get class pswp__preloader--active when preloader is running -->
-                                        <div class="pswp__preloader">
-                                            <div class="pswp__preloader__icn">
-                                                <div class="pswp__preloader__cut">
-                                                    <div class="pswp__preloader__donut"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!--
-		            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
-		                <div class="pswp__share-tooltip"></div> 
-		            </div>
-		       		-->
-
-                                    <button class="pswp__button pswp__button--arrow--left"
-                                        title="Previous (arrow left)">
-                                    </button>
-
-                                    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
-                                    </button>
-
-                                    <div class="pswp__caption">
-                                        <div class="pswp__caption__center"></div>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                    </div>
+                <div class="col-lg-6 mb-4 mb-md-0">
 
                     <div class="mdb-lightbox" data-pswp-uid="1">
 
                         <div class="row product-gallery mx-1">
 
-                            <div class="col-12 mb-0">
+                            <div style="width: 19.5% !important;">
+
+                                <div class="pr-2 pb-3">
+                                    <div class="view overlay rounded z-depth-1 gallery-item hoverable">
+                                        <img src="{{ item.img.url }}" class="img-fluid">
+                                        <div class="mask rgba-white-slight"></div>
+                                    </div>
+                                </div>
+
+
+                                {% for img in images %}
+
+                                <div class="pr-2 pb-3">
+                                    <div class="view overlay rounded z-depth-1 gallery-item hoverable">
+                                        <img src="{{ img.image.url }}" class="img-fluid">
+                                        <div class="mask rgba-white-slight"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                            </div>
+
+                            <div class="pl-2" style="width: 80.5% !important;">
+
                                 <figure class="view overlay rounded z-depth-1 main-img"
                                     style="width: 100% !important; height: auto !important;">
                                     <a href="{{ item.img.url }}">
@@ -110,137 +314,125 @@
                                             class="img-fluid z-depth-1">
                                     </a>
                                 </figure>
+
                             </div>
-                            <div class="col-12">
-                                <div style="padding: .5rem;" class="row">
-                                    <div class="col-3">
-                                        <div class="view overlay rounded z-depth-1 gallery-item hoverable">
-                                            <img src="{{ item.img.url }}" class="img-fluid">
-                                            <div class="mask rgba-white-slight"></div>
-                                        </div>
-                                    </div>
-                                    {% for img in images %}
-                                    <div class="col-3">
-                                        <div class="view overlay rounded z-depth-1 gallery-item hoverable">
-                                            <img src="{{ img.image.url }}" class="img-fluid">
-                                            <div class="mask rgba-white-slight"></div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
+
                         </div>
 
                     </div>
 
                 </div>
-                <div class="col-md-6">
 
-                    <h5>{{ item.name }}</h5>
-                    <div class="mb-2">
-                        <p class="mb-2 text-muted text-uppercase small">{{ item.get_category_display }}</p>
-                        <a href="">
-                            {% if item.label %}
-                            <span class="badge {{ item.get_label_color_display }} mr-1">{{ item.label }}</span>
-                            {% endif %}
-                        </a>
-                    </div>
-                    <ul class="rating">
+                <div class="col-lg-6">
+
+                    <!-- Name -->
+                    <h2 class="font-roboto mb-0" style="font-size: 3em;">{{ item.name }}</h2>
+                    <!-- Name -->
+
+                    <!-- Rating -->
+                    <ul class="rating" style="margin-bottom: 5em;">
                         <li>
-                            <i class="fas fa-star fa-sm text-primary"></i>
+                            <i
+                                class="{% if item.reviews_vote >= 1 %}fas{% else %}far{% endif %} fa-star text-primary"></i>
                         </li>
                         <li>
-                            <i class="fas fa-star fa-sm text-primary"></i>
+                            <i
+                                class="{% if item.reviews_vote >= 2 %}fas{% else %}far{% endif %} fa-star text-primary"></i>
                         </li>
                         <li>
-                            <i class="fas fa-star fa-sm text-primary"></i>
+                            <i
+                                class="{% if item.reviews_vote >= 3 %}fas{% else %}far{% endif %} fa-star text-primary"></i>
                         </li>
                         <li>
-                            <i class="fas fa-star fa-sm text-primary"></i>
+                            <i
+                                class="{% if item.reviews_vote >= 4 %}fas{% else %}far{% endif %} fa-star text-primary"></i>
                         </li>
                         <li>
-                            <i class="far fa-star fa-sm text-primary"></i>
+                            <i
+                                class="{% if item.reviews_vote >= 5 %}fas{% else %}far{% endif %} fa-star text-primary"></i>
                         </li>
                     </ul>
-                    <p><span class="mr-1"><strong>$ {{ item.price }}</strong></span></p>
-                    <p class="pt-1">{{ item.description }}</p>
+                    <!-- Rating -->
+
+                    <!-- Description -->
+                    <p class="mb-4">{{ item.description }}</p>
+                    <!-- Description -->
+
+                    <hr>
+
+                    <!-- Info -->
                     <div class="table-responsive">
                         <table class="table table-sm table-borderless mb-0">
                             <tbody>
                                 <tr>
-                                    <th class="pl-0 w-25" scope="row"><strong>Model</strong></th>
-                                    <td>Shirt 5407X</td>
+                                    <th class="pl-0 w-25" scope="row"><strong>Category</strong></th>
+                                    <td>{{ item.category }}</td>
                                 </tr>
                                 <tr>
                                     <th class="pl-0 w-25" scope="row"><strong>Color</strong></th>
-                                    <td>Blue</td>
-                                </tr>
-                                <tr>
-                                    <th class="pl-0 w-25" scope="row"><strong>Delivery</strong></th>
-                                    <td>USA, Europe</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <hr>
-                    <div class="table-responsive mb-2">
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <tr>
-                                    <td class="pb-0">Select size</td>
-                                </tr>
-                                <tr>
                                     <td>
-                                        <div class="mt-1">
-                                            <div class="form-check form-check-inline pl-0">
-                                                <input type="radio" class="form-check-input" id="small"
-                                                    name="materialExampleRadios" checked="">
-                                                <label class="form-check-label small text-uppercase card-link-secondary"
-                                                    for="small">Small</label>
-                                            </div>
-                                            <div class="form-check form-check-inline pl-0">
-                                                <input type="radio" class="form-check-input" id="medium"
-                                                    name="materialExampleRadios">
-                                                <label class="form-check-label small text-uppercase card-link-secondary"
-                                                    for="medium">Medium</label>
-                                            </div>
-                                            <div class="form-check form-check-inline pl-0">
-                                                <input type="radio" class="form-check-input" id="large"
-                                                    name="materialExampleRadios">
-                                                <label class="form-check-label small text-uppercase card-link-secondary"
-                                                    for="large">Large</label>
-                                            </div>
-                                        </div>
+                                        {% for color in item.color.all %}
+
+                                        <div style="background-color: {{ color }}" class="color-ball"></div>
+                                        {% endfor %}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="pl-0 pb-0 w-25">Quantity</td>
-                                </tr>
-                                <tr>
-                                    <td class="pl-0">
-                                        <div class="def-number-input number-input safari_only mb-0">
-                                            <button
-                                                onclick="this.parentNode.querySelector(&#39;input[type=number]&#39;).stepDown()"
-                                                class="minus"></button>
-                                            <input id="item_quantity" class="quantity" min="0" name="quantity" value="1"
-                                                type="number">
-                                            <button
-                                                onclick="this.parentNode.querySelector(&#39;input[type=number]&#39;).stepUp()"
-                                                class="plus"></button>
+                                    <th class="pl-0 w-25" scope="row"><strong>Size</strong></th>
+                                    <td>
+                                        <div class="mt-1" id="size_container">
+
+                                            {% for each in item.quantities_size.all %}
+                                            <div class="form-check form-check-inline pl-0 size_div" id="size_div">
+                                                <input type="radio" class="form-check-input" id="{{ each.size}} "
+                                                    name="size" checked="" value="{{ each.size }}">
+                                                <label class="form-check-label small text-uppercase card-link-secondary"
+                                                    for="{{ each.size }} ">{{ each.size }}</label>
+                                                <p style="display: none">{{ each.quantity }}</p>
+                                            </div>
+                                            {% endfor %}
                                         </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                    <!-- Info -->
 
+                    <hr>
 
-                    <!-- <button type="button" class="btn btn-primary btn-md mr-1 mb-2 waves-effect waves-light">Buy now</button> -->
-                    <div id="add-to-cart-btn" class="d-flex justify-content-left">
-                        <button type="button" class="btn btn-light btn-md mr-1 mb-2 waves-effect waves-light"><i
-                                class="fas fa-shopping-cart pr-2"></i>Add to
-                            cart</button>
+                    <div style="position: relative !important;">
+
+                        <div class="table-responsive mb-2">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="pl-0 pb-0 w-25" style="padding-left: 2.9em !important;">
+                                            <strong>Quantity</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="pl-0">
+                                            <div class="def-number-input number-input safari_only mb-0">
+                                                <button class="minus" id="minus-button"></button>
+                                                <input id="item_quantity" class="quantity" min="1" name="quantity"
+                                                    value="1" type="number">
+                                                <button class="plus" id="plus-button"></butto>
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="add-to-cart-btn" style="position: absolute !important; right: 0px; top: 2.5em;">
+                            <button type="button" class="btn btn-primary btn-md mr-1 mb-2 waves-effect waves-light">
+                                <i class="fas fa-cart-plus fa-lg pr-2"></i>
+                                Add to cart
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -250,110 +442,180 @@
         <!-- Classic tabs -->
         <div class="classic-tabs">
 
+            <ul class="nav tabs-primary nav-justified" id="advancedTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active show" id="reviews-tab" data-toggle="tab" href="#reviews" role="tab"
+                        aria-controls="reviews" aria-selected="true">Reviews</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="add-review-tab" data-toggle="tab" href="#add-review-container" role="tab"
+                        aria-controls="add-review-container" aria-selected="false">Add review</a>
+                </li>
+            </ul>
 
-            <div id="advancedTabContent">
+            <div class="tab-content" id="advancedTabContent">
 
+                {% if item.get_reviews %}
 
-                <div class="tab-pane" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                    <h4 class="text-center mb-5"> Review</h4>
+                <!-- Tab reviews -->
+                <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                    {% for review in item.get_reviews %}
                     <div class="media mt-3 mb-4">
-                        <img class="d-flex mr-3 z-depth-1" src="{% static '/img/review.jpg' %}" width="62"
-                            style="border-radius: 50%;" alt="Generic placeholder image">
+                        <img id="profile-img" class="d-flex mr-3 z-depth-1" src="{{ review.user.profile_img.url }}"
+                            style="border-radius: 50%; height: 70px; width:70px" alt="Generic placeholder image">
                         <div class="media-body">
+
                             <div class="d-flex justify-content-between">
-                                <p class="mt-1 mb-2">
-                                    <strong>Marthasteward </strong>
-                                    <span>– </span><span>January 28, 2020</span>
+
+                                <p class="mt-0 mb-0" style="font-size: larger;">
+                                    <strong>{{ review.user }} </strong> -
+                                    <strong>{{ review.title }}</strong>
                                 </p>
+
                                 <ul class="rating mb-0">
-                                    <li>
-                                        <i class="fas fa-star fa-sm text-primary"></i>
+                                    <li><i
+                                            class="{% if review.vote >= 1 %}fas{% else %}far{% endif %} fa-star fa-sm text-primary"></i>
                                     </li>
-                                    <li>
-                                        <i class="fas fa-star fa-sm text-primary"></i>
+
+                                    <li><i
+                                            class="{% if review.vote >= 2 %}fas{% else %}far{% endif %} fa-star fa-sm text-primary"></i>
                                     </li>
-                                    <li>
-                                        <i class="fas fa-star fa-sm text-primary"></i>
+                                    <li><i
+                                            class="{% if review.vote >= 3 %}fas{% else %}far{% endif %} fa-star fa-sm text-primary"></i>
                                     </li>
-                                    <li>
-                                        <i class="fas fa-star fa-sm text-primary"></i>
+                                    <li><i
+                                            class="{% if review.vote >= 4 %}fas{% else %}far{% endif %} fa-star fa-sm text-primary"></i>
                                     </li>
-                                    <li>
-                                        <i class="far fa-star fa-sm text-primary"></i>
+                                    <li><i
+                                            class="{% if review.vote >= 5 %}fas{% else %}far{% endif %} fa-star fa-sm text-primary"></i>
                                     </li>
                                 </ul>
+
                             </div>
-                            <p class="mb-0">Nice one, love it!</p>
+
+                            <p class="mt-0 pt-0 text-muted">{{ review.get_only_date }}</p>
+                            <p class="mb-0">{{ review.comment }}</p>
                         </div>
                     </div>
-                    <hr>
+
+                    {% if review.img %}
+
+                    <div class="row">
+                        <div id="image-review" class="view overlay rounded z-depth-1 gallery-item hoverable col-lg-2">
+                            <img id="profile-img" class="img-fluid" src="{{ review.img.url }}"
+                                alt="Generic placeholder image">
+                        </div>
+                    </div>
+
+                    {% endif %}
+
+                    <hr class="mt-4">
+
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="tab-pane fade show active text-center" id="reviews" role="tabpanel"
+                    aria-labelledby="reviews-tab" style="height: 400px !important;">
+
+                    <h1 style="padding: 160px !important;">
+                        No reviews yet
+                        <span><i class="far fa-frown pl-1"></i></span>
+                    </h1>
+
+
+                </div>
+
+                {% endif %}
+
+                <!-- Tab add review -->
+                <div class="tab-pane fade" id="add-review-container" role="tabpanel" aria-labelledby="add-review-tab">
                     <h5 class="mt-4">Add a review</h5>
                     <p>Your email address will not be published.</p>
-                    <div class="my-3">
-                        <ul class="rating mb-0">
-                            <li>
-                                <a
-                                    href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/product.html#!">
-                                    <i class="fas fa-star fa-sm text-primary"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/product.html#!">
-                                    <i class="fas fa-star fa-sm text-primary"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/product.html#!">
-                                    <i class="fas fa-star fa-sm text-primary"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/product.html#!">
-                                    <i class="fas fa-star fa-sm text-primary"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/product.html#!">
-                                    <i class="far fa-star fa-sm text-primary"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <!-- Your review -->
-                        <div class="md-form md-outline">
-                            <textarea id="form76" class="md-textarea form-control pr-6" rows="4"></textarea>
-                            <label for="form76">Your review</label>
+
+                    <form style="width: 100%; margin-bottom: 1cm;" method="POST" class="form-group"
+                        enctype="multipart/form-data" id="formreview">
+                        {% csrf_token %}
+                        <div class="my-3">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="md-form md-outline mt-0">
+                                        {{ itemReviewForm.title }}
+                                        <label for="title">Title</label>
+                                    </div>
+                                </div>
+                                <div class="col-4 ml-auto" style="text-align: right;">
+                                    <div>
+                                        {{ itemReviewForm.vote }}
+                                    </div>
+                                    <ul class="rating">
+                                        <li>
+                                            <a>
+                                                <i id="one-star" class="far fa-star fa-lg text-primary"
+                                                    data-rating="1"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a>
+                                                <i id="two-star" class="far fa-star fa-lg text-primary"
+                                                    data-rating="2"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a>
+                                                <i id="three-star" class="far fa-star fa-lg text-primary"
+                                                    data-rating="3"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a>
+                                                <i id="four-star" class="far fa-star fa-lg text-primary"
+                                                    data-rating="4"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a>
+                                                <i id="five-star" class="far fa-star fa-lg text-primary"
+                                                    data-rating="5"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-9">
+                                    <div class="md-form md-outline mt-0">
+                                        {{ itemReviewForm.comment }}
+                                        <label for="comment">Description</label>
+                                    </div>
+                                </div>
+                                <div class="col-3 upload-image-container">
+                                    <div class="images" id="up_{{ itemReviewForm.img.html_name  }}">
+                                        <div class="pic" id="btn_{{ itemReviewForm.img.html_name }}">
+                                            <label for="id_{{ itemReviewForm.img.html_name }}">
+                                                <i class="fa fa-plus" aria-hidden="true"></i>
+                                        </div>
+                                    </div>
+                                    {{ itemReviewForm.img }}
+                                </div>
+                            </div>
+
+
+
+
+                            <div class="text-right pb-2">
+                                <button type="submit" class="btn btn-primary waves-effect waves-light">Add a
+                                    review</button>
+                            </div>
                         </div>
-                        <!-- Name -->
-                        <div class="md-form md-outline">
-                            <input type="text" id="form75" class="form-control pr-6">
-                            <label for="form75">Name</label>
-                        </div>
-                        <!-- Email -->
-                        <div class="md-form md-outline">
-                            <input type="email" id="form77" class="form-control pr-6">
-                            <label for="form77">Email</label>
-                        </div>
-                        <div class="text-right pb-2">
-                            <button type="button" class="btn btn-primary waves-effect waves-light">Add a review</button>
-                        </div>
-                    </div>
+                    </form>
+                    <hr>
                 </div>
             </div>
-
-
-
-
-
         </div>
         <!-- Classic tabs -->
 
-        <hr>
 
         {% if similar_posts %}
         <!--Section: Block Content-->
@@ -369,11 +631,11 @@
                     <!-- Card -->
                     <div class="card card-cascade">
 
-                        <div class="view zoom overlay z-depth-2 rounded">
+                        <div id="similar-post-view" class="view zoom overlay z-depth-2 rounded">
                             <img class="img-fluid w-100" src="{{ p.img.url }}" alt="Sample">
                             <a href="{{ p.get_url }}">
-                                <div class="mask waves-effect waves-light">
-                                    <img style="height: 380px!important" class="img-fluid w-100" src="{{ p.img.url }}">
+                                <div id="similar-post-zoom-view" class="mask waves-effect waves-light">
+                                    <img class="img-fluid w-100" src="{{ p.img.url }}">
                                     <div class="mask rgba-black-slight waves-effect waves-light"></div>
                                 </div>
                             </a>
@@ -398,13 +660,31 @@
         </section>
 
         {% endif %}
-        <!--Section: Block Content-->
 
+
+        <!--Section: Block Content-->
     </div>
 </main>
 <!--Main layout-->
 
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script>
+
+    $('#size_container #size_div input').each(function () {
+        $(this).on('click', function () {
+
+            max_val = $(this).closest("div").find("p").html();
+            if (max_val == 0) {
+                $("#item_quantity").val("0");
+                $("#item_quantity").attr({ "max": max_val });
+            }
+            else {
+                $("#item_quantity").val("1");
+                $("#item_quantity").attr({ "max": max_val });
+            }
+        })
+    });
+</script>
 <script text="text/javascript">
 
     function redirect(url) {
@@ -415,7 +695,277 @@
         var delay = 500
         var item_id = '{{ item.id| safe }}'
         var item_q = document.getElementById('item_quantity').value
-        setTimeout(redirect, delay, '/order/add_order_item/' + item_id + '/S/' + item_q + '/')
+        var item_s = document.querySelector('input[name="size"]:checked').value;
+        setTimeout(redirect, delay, '/order/add_order_item/' + item_id + '/' + item_s + '/' + item_q + '/')
     })
 </script>
+<script>
+        (function ($) {
+            $(document).ready(function () {
+
+                var size_div = $('.size_div')
+                size_div.each(function (i, size) {
+                    var qnt = $(this).find('p').text()
+                    if (qnt == 0) {
+                        $(this).hide()
+                    }
+                });
+
+                uploadImage()
+
+
+                var ID
+                var way = 0
+                var queue = []
+                var fullStock = 10
+                var speedCloseNoti = 1000
+
+
+                function uploadImage() {
+
+                    var button = $('.images .pic')
+                    var uploader = $('#id_img')
+                    var images = $('.images')
+
+
+                    button.on('click', function () {
+                        uploader.click()
+                    })
+
+
+                    uploader.on('change', function () {
+                        var reader = new FileReader()
+                        reader.onload = function (event) {
+                            images.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                            button.hide()
+                        }
+                        reader.readAsDataURL(uploader[0].files[0])
+                    })
+
+
+                    images.on('click', '.img', function () {
+                        $(this).remove()
+                        button.show()
+                    })
+
+                }
+
+
+            })
+        })(jQuery)
+
+</script>
+<script>
+
+    var alreadyUp = false
+    var input_number = document.getElementById("id_vote");
+    input_number.value = "1";
+
+    function mouseIn(ids) {
+        if ($(ids).hasClass('fas')) {
+            alreadyUp = true
+        } else {
+            $(ids).removeClass('far')
+            $(ids).addClass('fas')
+        }
+    }
+
+    function mouseOut(ids) {
+        if (!alreadyUp) {
+            $(ids).removeClass('fas')
+            $(ids).addClass('far')
+        }
+        alreadyUp = false
+    }
+
+    $('#one-star').hover(
+        function () {
+            mouseIn('#one-star')
+
+        }, function () {
+            mouseOut('#one-star')
+        }
+    );
+
+    $('#two-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star')
+        }
+    );
+
+    $('#three-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star, #three-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star, #three-star')
+        }
+    );
+
+    $('#four-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star, #three-star, #four-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star, #three-star, #four-star')
+        }
+    );
+
+    $('#five-star').hover(
+        function () {
+            mouseIn('#one-star, #two-star, #three-star, #four-star, #five-star')
+
+        }, function () {
+            mouseOut('#one-star, #two-star, #three-star, #four-star, #five-star')
+        }
+    );
+
+    $('#one-star').on('click', function () {
+        input_number.value = "1";
+        alreadyUp = true
+        $('#one-star').removeClass('far')
+        $('#one-star').addClass('fas')
+
+        $('#two-star').removeClass('fas')
+        $('#two-star').addClass('far')
+        $('#three-star').removeClass('fas')
+        $('#three-star').addClass('far')
+        $('#four-star').removeClass('fas')
+        $('#four-star').addClass('far')
+        $('#five-star').removeClass('fas')
+        $('#five-star').addClass('far')
+    })
+    $('#two-star').on('click', function () {
+        input_number.value = "2";
+        alreadyUp = true
+        $('#one-star').removeClass('far')
+        $('#one-star').addClass('fas')
+        $('#two-star').removeClass('far')
+        $('#two-star').addClass('fas')
+
+        $('#three-star').removeClass('fas')
+        $('#three-star').addClass('far')
+        $('#four-star').removeClass('fas')
+        $('#four-star').addClass('far')
+        $('#five-star').removeClass('fas')
+        $('#five-star').addClass('far')
+    })
+    $('#three-star').on('click', function () {
+        input_number.value = "3";
+        alreadyUp = true
+        $('#one-star').removeClass('far')
+        $('#one-star').addClass('fas')
+        $('#two-star').removeClass('far')
+        $('#two-star').addClass('fas')
+        $('#three-star').removeClass('far')
+        $('#three-star').addClass('fas')
+
+        $('#four-star').removeClass('fas')
+        $('#four-star').addClass('far')
+        $('#five-star').removeClass('fas')
+        $('#five-star').addClass('far')
+    })
+    $('#four-star').on('click', function () {
+        input_number.value = "4";
+        alreadyUp = true
+        $('#one-star').removeClass('far')
+        $('#one-star').addClass('fas')
+        $('#two-star').removeClass('far')
+        $('#two-star').addClass('fas')
+        $('#three-star').removeClass('far')
+        $('#three-star').addClass('fas')
+        $('#four-star').removeClass('far')
+        $('#four-star').addClass('fas')
+
+        $('#five-star').removeClass('fas')
+        $('#five-star').addClass('far')
+    })
+    $('#five-star').on('click', function () {
+        input_number.value = "5";
+        alreadyUp = true
+        $('#one-star').removeClass('far')
+        $('#one-star').addClass('fas')
+        $('#two-star').removeClass('far')
+        $('#two-star').addClass('fas')
+        $('#three-star').removeClass('far')
+        $('#three-star').addClass('fas')
+        $('#four-star').removeClass('far')
+        $('#four-star').addClass('fas')
+        $('#five-star').removeClass('far')
+        $('#five-star').addClass('fas')
+    })
+</script>
+<script text="text/javascript">
+    document.getElementById("minus-button").onclick = function () { this.parentNode.querySelector('input[type=number]').stepDown() };
+    document.getElementById("plus-button").onclick = function () { this.parentNode.querySelector('input[type=number]').stepUp() };
+</script>
+<script>
+
+    if ('{{ request.user }}' == '{{ item.owner}}') {
+
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the button that opens the modal
+        var btn_delete = document.getElementById("delete");
+        var btn_change = document.getElementById("change")
+
+        var NO = document.getElementById("no-delete");
+        var YES = document.getElementById("yes-delete");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementById("close-modal");
+        var span_div = document.getElementById("close-div");
+        var hr = document.getElementById("hr-hide");
+
+        // Get Div
+        var div = document.getElementById("div-container-change-item");
+
+        // When the user clicks the button, open the modal 
+        btn_delete.onclick = function () {
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        span_div.onclick = function () {
+            div.style.display = "none";
+            hr.style.display = "none";
+
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        NO.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        YES.onclick = function () {
+            delay = 500
+            var item_id = '{{ item.id| safe }}'
+            setTimeout(redirect, delay, '/item/delete/' + item_id + '/')
+        }
+
+        btn_change.onclick = function () {
+            delay = 500
+            var item_id = '{{ item.id| safe }}'
+            setTimeout(redirect, delay, '/item/update/' + item_id + '/')
+        }
+    }
+
+
+</script>
+
+
 {% endblock content %}

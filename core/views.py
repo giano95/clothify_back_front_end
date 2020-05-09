@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.http import Http404, JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -15,8 +16,13 @@ from django.db.models import Count
 from django.core.mail import send_mail, BadHeaderError
 from django.forms import modelformset_factory
 from django.template import RequestContext
+from django.db.models import Count
+from django.db.models.query import QuerySet
+from django.db.models import Sum
+from django.core.exceptions import PermissionDenied
 
 from core.models import User
+from order.models import Order, OrderItem
 from core.forms import ContactForm, CheckoutForm
 from cities_light.models import Country, Region, City
 from item.models import Item, ItemCategory, ItemColor, ItemImage, ItemLabel, ItemReview, ItemSize
@@ -153,17 +159,24 @@ class ShopView(ListView):
         if sizes_tag:
             sizes_tag = sizes_tag.split(",")[:-1]
 
-            items = Item.objects.all().filter(size__tag__in=sizes_tag).distinct()
+            items = Item.objects.all().filter(
+                quantities_size__size__tag__in=sizes_tag).distinct()
             result = items
 
         return result
 
 
+@method_decorator(login_required, name='dispatch')
 class CheckoutView(View):
 
     def get(self, *args, **kwargs):
         form = CheckoutForm()
-        return render(self.request, "checkout.html", {'form': form})
+        try:
+            order = Order.objects.filter(
+                user=self.request.user, is_ordered=False)[0]
+        except Order.DoesNotExist and IndexError:
+            order = None
+        return render(self.request, "checkout.html", {'form': form, 'order': order})
 
     def post(self, *args, **kwargs):
         form = CheckoutForm(self.request.POST or None)
@@ -188,7 +201,67 @@ class CheckoutView(View):
 class PaymentView(View):
 
     def get(self, *args, **kwargs):
-        return render(self.request, "payment.html", context={})
+        try:
+            order = Order.objects.filter(
+                user=self.request.user, is_ordered=False)[0]
+        except Order.DoesNotExist and IndexError:
+            order = None
+
+        if not order:
+            return redirect('core:home')
+
+        owners = OrderItem.objects.filter(
+            user=self.request.user,
+            is_ordered=False,
+        ).values_list('item__owner', flat=True).distinct()
+
+        order_items_to_pay = OrderItem.objects.filter(
+            user=self.request.user,
+            is_ordered=False,
+            item__owner=owners[0]
+        )
+        amount_to_pay = 0
+        for order_item in order_items_to_pay:
+            amount_to_pay += order_item.get_total_price()
+
+        if not order_items_to_pay:
+            return render(self.request, "payment.html", context={'order': None})
+
+        order_items_to_pay.update(pending=True)
+
+        return render(self.request, "payment.html", context={'order': order, 'amount_to_pay': amount_to_pay})
+
+
+def payment_succeeded(request):
+
+    # Set the pending items as ordered to indicate that they have been paid for
+    pending_items = OrderItem.objects.filter(
+        user=request.user,
+        is_ordered=False,
+        pending=True
+    )
+
+    for order_item in pending_items:
+        order_item.item.dec_quantity_size(
+            order_item.item_size, order_item.quantity)
+
+    pending_items.update(pending=False, is_ordered=True)
+
+    items_to_pay = OrderItem.objects.filter(
+        user=request.user,
+        is_ordered=False
+    )
+    if items_to_pay:
+        return JsonResponse({'url': reverse('core:payment')})
+    else:
+        order = Order.objects.filter(
+            user=request.user,
+            is_ordered=False
+        )
+        if order:
+            order.update(is_ordered=True)
+
+        return JsonResponse({'url': reverse('core:home')})
 
 
 class ContactView(View):
@@ -272,26 +345,26 @@ def secret(request):
         user=request.user,
         is_ordered=False
     )
-    order_items = OrderItem.objects.filter(
+    pending_order_items = OrderItem.objects.filter(
         user=request.user,
-        is_ordered=False
+        is_ordered=False,
+        pending=True
     )
-    if not order.exists() or not order_items.exists():
-        print('order_error or order_items_error')
+
+    if not order.exists() or not pending_order_items.exists():
         return JsonResponse({'client_secret': 'error'})
 
-    order = order[0]
-    order_items = order_items[0]
-    connected_account_id = order_items.item.owner.connected_account_id
+    connected_account_id = pending_order_items[0].item.owner.connected_account_id
 
     if connected_account_id is None:
-        print('connected_account_id_error')
         return JsonResponse({'client_secret': 'error'})
 
-    amount = round(order.get_total_order_price() * 100.0)
+    amount_to_pay = 0
+    for order_item in pending_order_items:
+        amount_to_pay += order_item.get_total_price()
+
+    amount = round(amount_to_pay * 100.0)
     application_fee_amount = round(0.123 * amount)
-    print(amount)
-    print(application_fee_amount)
 
     intent = stripe.PaymentIntent.create(
         payment_method_types=['card'],

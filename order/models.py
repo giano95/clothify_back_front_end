@@ -1,14 +1,23 @@
 from django.db import models
 from django.conf import settings
+from django_group_by import GroupByMixin
+from django.db.models.query import QuerySet
+
+
+class OrderItemQuerySet(QuerySet, GroupByMixin):
+    pass
 
 
 class OrderItem(models.Model):
+    objects = OrderItemQuerySet.as_manager()
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
     item = models.ForeignKey('item.Item', on_delete=models.CASCADE)
     item_size = models.ForeignKey(
         'item.ItemSize', on_delete=models.CASCADE, default=None)
     is_ordered = models.BooleanField(default=False)
+    pending = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
 
     def get_total_price(self):

@@ -1,0 +1,433 @@
+{% extends 'base-standard.html' %}
+
+{% load my_template_tags %}
+
+{% block head_title %}Clothify{% endblock %}
+
+
+{% block content %}
+<style>
+    div.md-form.md-outline label {
+        padding-left: 25px !important;
+    }
+
+    textarea {
+        border-radius: 4px;
+        border: 1px solid #dadce0;
+        padding: 10px;
+    }
+
+    textarea:focus:invalid:focus {
+        border: 2px solid #4285f4;
+        border-radius: 4px;
+    }
+
+    textarea:focus:not([readonly])+label {
+        color: #4285f4
+    }
+
+    #id_color {
+        height: 305px;
+        width: 100%;
+        margin: 0 auto;
+        color: #757575;
+        padding: 7px;
+        background-color: #fff;
+        box-sizing: border-box;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        outline: 0;
+        box-shadow: none;
+        font-size: 1rem;
+    }
+
+    #id_color:focus {
+        border: 2px solid #4285f4;
+    }
+</style>
+
+<style>
+    div.md-form input {
+        padding: 7px;
+        width: 100%;
+    }
+
+    div.md-form textarea {
+        width: 100%;
+    }
+</style>
+<style>
+    .images {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .images .img,
+    .images .pic {
+        flex-basis: 100%;
+
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .images .img {
+        width: 100%;
+        height: 300px;
+        background-size: cover;
+        margin-right: 10px;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .images .img:nth-child(3n) {
+        margin-right: 0;
+    }
+
+    .images .img span {
+        display: none;
+        text-transform: capitalize;
+        z-index: 2;
+    }
+
+    .images .img::after {
+        content: '';
+        width: 100%;
+        height: 100%;
+        transition: opacity .1s ease-in;
+        border-radius: 4px;
+        opacity: 0;
+        position: absolute;
+    }
+
+    .images .img:hover::after {
+        display: block;
+        background-color: #000;
+        opacity: .5;
+    }
+
+    .images .img:hover span {
+        display: block;
+        color: #fff;
+    }
+
+    .images .pic {
+        background-color: #F5F7FA;
+        align-self: center;
+        text-align: center;
+        padding: 40px 0;
+        text-transform: uppercase;
+        color: #848EA1;
+        font-size: 45px;
+        cursor: pointer;
+        vertical-align: middle;
+        line-height: 220px;
+        height: 308px;
+    }
+
+    .upload-image-container input {
+        display: none !important;
+    }
+</style>
+
+<div class="container add-item-container pt-7">
+
+
+    <h2 style="margin-top: 3cm" class="text-center mb-5">Change post</h2>
+
+    <!--Grid column-->
+    <div class="row">
+
+        <form style="width: 100%" method="POST" class="form-group" enctype="multipart/form-data" id="formupload">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            {{ formset2.management_form }}
+
+
+            <!-- itemForm -->
+            {{ itemForm.management_form }}
+            <div class="md-form md-outline mt-0 col-4">
+                {{ itemForm.name }}
+                <label for="name">Title</label>
+            </div>
+
+            <div style="border-radius: 4px;" class="md-form md-outline mt-0 col-lg-12">
+                {{ itemForm.description }}
+                <label for="description">Description</label>
+            </div>
+
+
+            <div class="md-form md-outline mt-0 col-4">
+                {{ itemForm.price }}
+                <label for="price">Price</label>
+            </div>
+
+            <hr style="margin-top: 0px">
+
+            <div class="row">
+                <div class="col-6 d-block my-3">
+                    <p class="text-center">Select colors</p>
+                    {{ itemForm.color }}
+                </div>
+
+                <div class="col-6 d-block my-3">
+                    <p class="text-center">Choose a category</p>
+                    <!-- {{ itemForm.category }} -->
+                    <div>
+                        {% for value, name in itemForm.fields.category.choices %}
+                        <div style="padding-top: 5px; padding-bottom: 5px;" class="custom-control custom-radio">
+                            <input id="{{ name }}" name="category" type="radio" class="custom-control-input"
+                                value="{{value}}" required>
+                            <label class="custom-control-label" for="{{ name }}">{{ name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+
+                <div class="col-lg-3 upload-image-container">
+                    <div class="images" id="if">
+                        <div class="pic" id="itemform">
+                            <label for="id_img"></label>
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    {{ itemForm.img }}
+                </div>
+
+                <!-- formset -->
+
+
+                <!-- {% for form in formset %}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    {{ form }}
+                {% endfor %} -->
+
+
+
+                {% for form in formset %}
+
+                {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+                {% endfor %}
+                <div class="col-lg-3 upload-image-container images-container" id="images-container">
+                    <div class="images" id="up_{{ form.image.html_name }}">
+                        <div class="pic" id="btn_{{ form.image.html_name }}">
+                            <label for="id_{{ form.image.html_name }}" style="display:none"></label>
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    {{ form.image }}
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- Formset 2 -->
+            <br>
+
+
+            {% for form2 in formset2 %}
+            {% for hidden in form2.hidden_fields %}
+            {{ hidden }}
+            {% endfor %}
+
+            <div style="padding-left:0px" class="col-6 itemquantitysize-container" id="itemquantitysize-container">
+                {{ form2.size }}
+                {{ form2.quantity }}
+            </div>
+            {% endfor %}
+
+
+            <div style="margin-top: 30px;" class="text-center pb-2">
+                <button type="submit" class="btn btn-success mgln">Save</button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+
+            var ID
+            var way = 0
+            var queue = []
+            var fullStock = 10
+            var speedCloseNoti = 1000
+
+            // hide --------- TODO
+            var trattino = $('#---------')
+            trattino.hide()
+
+            // Set Category
+            var category = '{{ itemForm.category.value }}'
+            $("input[name=category][value=" + category + "]").prop('checked', true);
+
+
+            //Set Itemquantitysize
+
+
+            var json_sizes = JSON.parse('{{ sizes_json | escapejs }}')
+
+            var container = $(".itemquantitysize-container")
+            container.each(function (i, sizes) {
+                var input_qnt = $(this).find('input[type="number"]')
+                input_qnt.attr({ "min": 0 });
+                var select = $(this).find('select')
+                var check_sz = $(this).find('select option')
+                check_sz.filter(function () {
+                    return $(this).text() == json_sizes.sizes[i];
+                }).prop('selected', true);
+                $(this).prepend('<p style=" display: inline-block; width: 250px;"> - Select a quantity for size ' + json_sizes.sizes[i] + ': </p>')
+                select.hide()
+            });
+
+            var json_qntsz = JSON.parse('{{ qntsz_json | escapejs }}')
+            $.each(json_qntsz, function (i, qntsz) {
+                var qntsz_size = json_qntsz[i].fields.size
+                var qntsz_qnt = json_qntsz[i].fields.quantity
+                $(".itemquantitysize-container").each(function (index) {
+                    var check_qntsz_size = $(this).find('option[value="' + qntsz_size + '"]').filter(':selected').val()
+                    if (check_qntsz_size) {
+                        $(this).find('input[type="number"]').val(qntsz_qnt)
+                        return false;
+                    }
+                });
+            });
+
+
+            // Set img itemForm and images
+
+            var button = $('.images #itemform')
+            var button_0 = $('.images #btn_images-0-image ')
+            var button_1 = $('.images #btn_images-1-image')
+            var button_2 = $('.images #btn_images-2-image')
+
+            var uploader = $('#id_img')
+            var uploader_0 = $('#id_images-0-image')
+            var uploader_1 = $('#id_images-1-image')
+            var uploader_2 = $('#id_images-2-image')
+
+            var images = $('#if')
+            var images_0 = $('#up_images-0-image')
+            var images_1 = $('#up_images-1-image')
+            var images_2 = $('#up_images-2-image')
+
+            // set background img 
+            var input_img = $('#id_img').prop('required', false);
+
+            var img = '{{ itemForm.img.value.url }}'
+
+            if (img) {
+                images.prepend('<div class="img" style="background-image: url(\'' + img + '\');" rel="' + img + '"><span>remove</span></div>')
+                button.hide()
+            }
+
+            //Set background images
+            var json_images = JSON.parse('{{ images_json | escapejs }}')
+            $.each(json_images, function (i, images) {
+                var image_url = json_images[i].fields.image
+                var images_container = $(".images-container").first()
+                images_container.removeClass("images-container")
+                images_container.find(".images").prepend('<div class="img" style="background-image: url(\'' + "/media/" + image_url + '\');" rel="' + image_url + '"><span>remove</span></div>')
+                images_container.find(".images .pic").hide()
+            });
+
+
+            //FUnzioni upload img and images
+
+            button.on('click', function () {
+                uploader.click()
+            })
+            button_0.on('click', function () {
+                uploader_0.click()
+            })
+            button_1.on('click', function () {
+                uploader_1.click()
+            })
+            button_2.on('click', function () {
+                uploader_2.click()
+            })
+
+            uploader.on('change', function () {
+                var reader = new FileReader()
+                reader.onload = function (event) {
+                    images.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    button.hide()
+                }
+                reader.readAsDataURL(uploader[0].files[0])
+            })
+            uploader_0.on('change', function () {
+                var reader = new FileReader()
+                reader.onload = function (event) {
+                    images_0.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    button_0.hide()
+                }
+                reader.readAsDataURL(uploader_0[0].files[0])
+            })
+            uploader_1.on('change', function () {
+                var reader = new FileReader()
+                reader.onload = function (event) {
+                    images_1.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    button_1.hide()
+                }
+                reader.readAsDataURL(uploader_1[0].files[0])
+            })
+            uploader_2.on('change', function () {
+                var reader = new FileReader()
+                reader.onload = function (event) {
+                    images_2.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                    button_2.hide()
+                }
+                reader.readAsDataURL(uploader_2[0].files[0])
+            })
+
+            images.on('click', '.img', function () {
+                $(this).remove()
+                button.show()
+            })
+            images_0.on('click', '.img', function () {
+                $(this).remove()
+                button_0.show()
+            })
+            images_1.on('click', '.img', function () {
+                $(this).remove()
+                button_1.show()
+            })
+            images_2.on('click', '.img', function () {
+                $(this).remove()
+                button_2.show()
+            })
+            $("#formupload").submit(function (event) {
+                var container = $(".itemquantitysize-container")
+                container.each(function (i, sizes) {
+                    var input_qnt = $(this).find('input[type="number"]').val()
+                    if (input_qnt == "") {
+                        $(this).find('input[type="number"]').val(0)
+                    }
+                });
+            });
+
+        })
+    })(jQuery)
+
+
+
+</script>
+
+{% endblock %}

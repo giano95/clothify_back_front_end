@@ -7,10 +7,6 @@
 
 {% block content %}
 <style>
-    div.md-form.md-outline label {
-        padding-left: 25px !important;
-    }
-
     textarea {
         border-radius: 4px;
         border: 1px solid #dadce0;
@@ -177,7 +173,7 @@
 
                 <div class="col-6 d-block my-3">
                     <p class="text-center">Choose a category</p>
-                    <!-- {{ itemForm.category }} -->
+
                     <div>
                         {% for value, name in itemForm.fields.category.choices %}
                         <div style="padding-top: 5px; padding-bottom: 5px;" class="custom-control custom-radio">
@@ -207,12 +203,7 @@
                 <!-- formset -->
 
 
-                <!-- {% for form in formset %}
-                    {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
-                    {% endfor %}
-                    {{ form }}
-                {% endfor %} -->
+
 
 
 
@@ -221,16 +212,20 @@
                 {% for hidden in form.hidden_fields %}
                 {{ hidden }}
                 {% endfor %}
-                <div class="col-lg-3 upload-image-container images-container" id="images-container">
+                <div class="col-lg-3 upload-image-container images-container remove-images" id="images-container">
                     <div class="images" id="up_{{ form.image.html_name }}">
                         <div class="pic" id="btn_{{ form.image.html_name }}">
                             <label for="id_{{ form.image.html_name }}" style="display:none"></label>
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </div>
+                        <p class="itemimage-name" style="display: none;">{{ form.instance }}</p>
                     </div>
                     {{ form.image }}
                 </div>
                 {% endfor %}
+
+
+
 
             </div>
 
@@ -401,18 +396,38 @@
                 $(this).remove()
                 button.show()
             })
-            images_0.on('click', '.img', function () {
-                $(this).remove()
-                button_0.show()
-            })
-            images_1.on('click', '.img', function () {
-                $(this).remove()
-                button_1.show()
-            })
-            images_2.on('click', '.img', function () {
-                $(this).remove()
-                button_2.show()
-            })
+
+            $('.remove-images').each(function (i, immagini) {
+                var first = 0
+                var images_all = $(this).find('.images')
+                var button_all = $(this).find('.pic')
+                images_all.on('click', '.img', function (e) {
+                    e.preventDefault();
+                    $(this).remove()
+                    button_all.show()
+                    var itemimage_name = images_all.find('p').text();
+                    /* if(itemimage_name != ""){
+                        if(first == 0){
+                            console.log(itemimage_name)
+                            $.ajax({
+                                type: 'post',
+                                url: "{% url 'item:delete_itemimage' %}",
+                                data: { 'itemimage_name' : itemimage_name },
+                                dataType:"json",
+                                beforeSend: function(xhr) {
+                                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                                },
+                                success: function(response){
+                                    console.log("eliminato")
+                                },
+                            });
+                            first = 1
+                        }
+                    } */
+                })
+            });
+
+
             $("#formupload").submit(function (event) {
                 var container = $(".itemquantitysize-container")
                 container.each(function (i, sizes) {

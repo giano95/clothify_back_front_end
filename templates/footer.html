@@ -53,17 +53,22 @@
         <div class="row mt-1 mt-md-0 mb-4 mb-md-0">
 
             <!-- Grid column -->
-            <div class="col-md-3 mx-auto mt-3 mt-md-0 mb-0 mb-md-4">
+            <div class="col-md-6 mx-auto mt-3 mt-md-0 mb-0 mb-md-4">
 
                 <!-- Links -->
                 <h5>About me</h5>
                 <hr class="mb-4 mt-0 d-inline-block mx-auto"
                     style="width: 87px;  height: 0.05em; background-color: #41b3ed;">
 
-                <p class="foot-desc mb-0">Here you can use rows and columns to organize your footer content. Lorem
-                    ipsum dolor sit amet,
-                    consectetur
-                    adipisicing elit.</p>
+                <p class="foot-desc mb-0">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris id turpis porttitor, vestibulum
+                    massa vel,
+                    tristique ante. Curabitur hendrerit quam massa, sit amet lobortis tellus consectetur eu. Suspendisse
+                    aliquet
+                    commodo tristique. Vivamus maximus pharetra sapien, ornare tempor libero egestas sed. Phasellus
+                    massa magna,
+                    tincidunt vitae nisl eget, rhoncus bibendum enim.
+                </p>
 
             </div>
             <!-- Grid column -->
@@ -74,62 +79,45 @@
             <div class="col-md-3 mx-auto mt-3 mt-md-0 mb-0 mb-md-4">
 
                 <!-- Links -->
-                <h5>Products</h5>
+                <h5>Products categories</h5>
                 <hr class="mb-4 mt-0 d-inline-block mx-auto"
-                    style="width: 81px;  height: 0.05em; background-color: #3e9bdc;">
+                    style="width: 180px;  height: 0.05em; background-color: #397fca;">
 
-                <ul class="list-unstyled foot-desc">
-                    <li class="mb-2">
-                        <a
-                            href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">MDBootstrap</a>
-                    </li>
-                    <li class="mb-2">
-                        <a
-                            href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">MDWordPress</a>
-                    </li>
-                    <li class="mb-2">
-                        <a
-                            href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">BrandFlow</a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">Bootstrap
-                            Angular</a>
-                    </li>
-                </ul>
+                <div class="row">
+                    <div class="col-6">
+                        <ul class="list-unstyled foot-desc">
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Dresses">Dresses</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Casual">Casual</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Jeans">Jeans</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Accessories">Accessories</a>
+                            </li>
 
-            </div>
-            <!-- Grid column -->
-
-            <hr class="clearfix w-100 d-md-none">
-
-            <!-- Grid column -->
-            <div class="col-md-3 mx-auto mt-3 mt-md-0 mb-0 mb-md-4">
-
-                <!-- Links -->
-                <h5>Useful links</h5>
-                <hr class="mb-4 mt-0 d-inline-block mx-auto"
-                    style="width: 105px;  height: 0.05em; background-color: #397fca;">
-
-                <ul class="list-unstyled foot-desc">
-                    <li class="mb-2">
-                        <a href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">Your
-                            Account</a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">Become
-                            an
-                            Affiliate</a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">Shipping
-                            Rates</a>
-                    </li>
-                    <li class="mb-2">
-                        <a
-                            href="https://mdbootstrap.com/previews/ecommerce-demo/docs/pages/basic/homepage.html#!">Help</a>
-                    </li>
-                </ul>
-
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul class="list-unstyled foot-desc">
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Vintage">Vintage</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Shoes">Shoes</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Sportswear">Sportswear</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'core:shop' %}?category_name=Jewelry">Jewelry</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
             <!-- Grid column -->
 
@@ -144,10 +132,10 @@
                     style="width: 83px; height: 0.05em; background-color: #3667ba;">
 
                 <ul class="fa-ul foot-desc ml-4">
-                    <li class="mb-2"><span class="fa-li"><i class="far fa-map"></i></span>New York, Avenue Street 10
+                    <li class="mb-2"><span class="fa-li"><i class="far fa-map"></i></span>Modena, Via Ravenna 24
                     </li>
-                    <li class="mb-2"><span class="fa-li"><i class="fas fa-phone-alt"></i></span>042 876 836 908</li>
-                    <li class="mb-2"><span class="fa-li"><i class="far fa-envelope"></i></span>company@example.com
+                    <li class="mb-2"><span class="fa-li"><i class="fas fa-phone-alt"></i></span>0536 71 344</li>
+                    <li class="mb-2"><span class="fa-li"><i class="far fa-envelope"></i></span>clothify@example.com
                     </li>
                     <li><span class="fa-li"><i class="far fa-clock"></i></span>Monday - Friday: 10-17</li>
                 </ul>
@@ -163,7 +151,8 @@
 
     <!-- Copyright -->
     <div class="footer-copyright text-center py-3">© 2020 Copyright:
-        <a href="https://mdbootstrap.com/"> MDBootstrap.com</a>
+        <a href="https://it.wikipedia.org/wiki/Enrico_Petrucci">Enrico Petrucci</a> &
+        <a href="https://it.wikipedia.org/wiki/Giano">Giano</a>
     </div>
     <!-- Copyright -->
 

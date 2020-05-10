@@ -15,7 +15,7 @@
 
     #post-image-view {
         position: relative;
-        height: 520px;
+        height: 505px;
     }
 
     #post-image-view img {
@@ -89,7 +89,7 @@
                     <!-- Card -->
                     <div class="card card-cascade zoom">
 
-                        <div class="view view-cascade overlay">
+                        <div id="post-image-view" class="view view-cascade overlay">
                             <img class="img-fluid w-100 hoverable" src="{{  item.img.url  }}" alt="Sample">
                             {% if item.label %}
                             <h3 class="mb-0"><span

@@ -64,11 +64,26 @@
                     </li>
                     <!-- Shop -->
 
+                    {% if request.user|is_sub_seller_tag %}
+
+                    <!-- Add Item  -->
+                    <li class="nav-item ml-2 mr-2">
+                        <a href="{% url 'item:add' %}" type="button"
+                            class="btn btn-outline-primary btn-md btn-navbar waves-effect waves-light"
+                            style="margin-left: 10px !important;">
+                            <!-- <i class="fa fa-plus" aria-hidden="true"></i> -->
+                            <span class="clearfix d-none d-sm-inline-block" style="width: 52px;">add Item</span>
+                        </a>
+                    </li>
+                    <!-- Add Item  -->
+
+                    {% endif %}
+
                     {% if request.user.is_authenticated %}
 
                     <!-- Logout -->
                     <li class="nav-item pl-2 mb-2 mb-md-0">
-                        <a href="{% url 'account_logout' %}" type="button"
+                        <a href="{% url 'account_logout' %}" type="button" id="log-btn"
                             class="btn aqua-gradient btn-md btn-navbar waves-effect waves-light">
                             <i class="fas fa-sign-out-alt"></i>
                             <span class="clearfix d-none d-sm-inline-block">Logout</span>
@@ -80,7 +95,7 @@
 
                     <!-- Login -->
                     <li class="nav-item pl-2 mb-2 mb-md-0">
-                        <a href="{% url 'account_login' %}" type="button"
+                        <a href="{% url 'account_login' %}" type="button" id="log-btn"
                             class="btn aqua-gradient btn-md btn-navbar waves-effect waves-light">
                             <i class="fas fa-sign-in-alt fa-lg"></i>
                             <span class="clearfix d-none d-sm-inline-block">Login</span>
@@ -157,13 +172,13 @@
         $(window).scroll(function () {
             if ($(this).scrollTop() > 10) {
                 $('.navbar-brand img').attr('src', "{% static 'img/icona5_black.png' %}")
-                $('.btn-navbar').addClass('btn-outline-primary')
-                $('.btn-navbar').removeClass('aqua-gradient')
+                $('#log-btn').addClass('btn-outline-primary')
+                $('#log-btn').removeClass('aqua-gradient')
             }
             else {
                 $('.navbar-brand img').attr('src', "{% static 'img/icona5_white.png' %}")
-                $('.btn-navbar').addClass('aqua-gradient')
-                $('.btn-navbar').removeClass('btn-outline-primary')
+                $('#log-btn').addClass('aqua-gradient')
+                $('#log-btn').removeClass('btn-outline-primary')
             }
         })
     });

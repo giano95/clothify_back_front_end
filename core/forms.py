@@ -12,11 +12,13 @@ from core.models import CheckoutInfo
 
 class CustomUserCreationForm(UserCreationForm):
     user_type = forms.ChoiceField(choices=User.TYPE_CHOICES, label='User Type')
+    profile_img = forms.ImageField(
+        widget=FileInput(attrs={'id': 'id_profile_img'}))
 
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'username',
-                  'user_type', 'email', 'password1', 'password2')
+                  'user_type', 'email', 'password1', 'password2', 'profile_img')
         widgets = {
             'first_name': TextInput(attrs={'id': 'first_name', 'class': 'form-control'}),
             'last_name': TextInput(attrs={'id': 'last_name', 'class': 'form-control'}),

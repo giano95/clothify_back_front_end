@@ -1,6 +1,7 @@
 from django import template
 from order.models import Order
 from django.urls import reverse
+from core.views import is_sub_seller, is_unsub_seller
 register = template.Library()
 
 
@@ -27,3 +28,13 @@ def cart_item_count(user):
 def set_country_id(country):
     country_id = country.id
     return
+
+
+@register.filter
+def is_sub_seller_tag(user):
+    return is_sub_seller(user)
+
+
+@register.filter
+def is_unsub_seller_tag(user):
+    return is_unsub_seller(user)

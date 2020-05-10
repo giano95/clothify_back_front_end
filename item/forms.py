@@ -45,12 +45,29 @@ class ItemForm(forms.ModelForm):
 
 
 class ItemReviewForm(forms.ModelForm):
-    title = forms.CharField(max_length=100, help_text='title', required=True)
-    comment = forms.Textarea()
+    title = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=TextInput(attrs={'class': 'form-control mb-0', 'id': 'title'})
+    )
+    comment = forms.CharField(
+        required=True,
+        widget=Textarea(attrs={
+            'cols': '40',
+            'rows': '7',
+            'class': 'form-control mb-0',
+            'id': 'comment',
+            'style': 'border-radius: 4px !important;'
+        })
+    )
     vote = forms.IntegerField(
-        required=True, widget=NumberInput(attrs={'min': '0', 'max': '5'}))
-    img = forms.ImageField(required=False, widget=FileInput(
-        attrs={'class': 'input_prova'}))
+        required=True,
+        widget=NumberInput(attrs={'min': '0', 'max': '5'})
+    )
+    img = forms.ImageField(
+        required=False,
+        widget=FileInput(attrs={'class': 'input_prova'})
+    )
 
     class Meta:
         model = ItemReview

@@ -38,7 +38,7 @@ class Item(models.Model):
                 quantity_size.save()
 
     def get_reviews(self):
-        return ItemReview.objects.filter(item=self)
+        return ItemReview.objects.filter(item=self).order_by('-date')
 
     @property
     def reviews_vote(self):
@@ -84,7 +84,7 @@ class ItemImage(models.Model):
         upload_to='item/img/', verbose_name='Image')
 
     def __str__(self):
-        return 'ItemImage of item'
+        return '{}'.format(self.image)
 
 
 class ItemReview(models.Model):

@@ -4,6 +4,7 @@ from item.views import (
     AddView,
     DeleteView,
     UpdateView,
+    DeleteItemImageView
 )
 
 
@@ -13,4 +14,6 @@ urlpatterns = [
     path('add/', AddView.as_view(), name='add'),
     path('delete/<pk>/', DeleteView.as_view(), name='delete'),
     path('update/<pk>/', UpdateView.as_view(), name='update'),
+    path('delete_itemimage/', DeleteItemImageView.as_view(),
+         name='delete_itemimage'),
 ]

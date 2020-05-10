@@ -77,6 +77,21 @@
                     </li>
                     <!-- Shop -->
 
+                    {% if request.user|is_sub_seller_tag %}
+
+                    <!-- Add Item  -->
+                    <li class="nav-item ml-2 mr-2">
+                        <a href="{% url 'item:add' %}" type="button"
+                            class="btn btn-outline-primary btn-md btn-navbar waves-effect waves-light"
+                            style="margin-left: 10px !important;">
+                            <!-- <i class="fa fa-plus" aria-hidden="true"></i> -->
+                            <span class="clearfix d-none d-sm-inline-block" style="width: 52px;">add Item</span>
+                        </a>
+                    </li>
+                    <!-- Add Item  -->
+
+                    {% endif %}
+
                     {% if request.user.is_authenticated %}
 
                     <!-- Logout -->

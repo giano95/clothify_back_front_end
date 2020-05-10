@@ -9,6 +9,7 @@ class AccountAdapter(DefaultAccountAdapter):
         user.first_name = data['first_name']
         user.last_name = data['last_name']
         user.user_type = data['user_type']
+        user.profile_img = data['profile_img']
         if 'password1' in data:
             user.set_password(data['password1'])
         else:

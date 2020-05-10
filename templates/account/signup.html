@@ -25,6 +25,88 @@
         padding-top: 4.0cm !important;
     }
 </style>
+<style>
+    .images {
+        /* display: flex;
+        flex-wrap: wrap; */
+        margin-top: 20px;
+        width: 150px;
+        margin: auto;
+    }
+
+    .images .img,
+    .images .pic {
+        flex-basis: 100%;
+        height: 300px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .images .img {
+        width: 100%;
+        height: 150px;
+        border-radius: 100px;
+        background-size: cover;
+        margin-right: 10px;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .images .img:nth-child(3n) {
+        margin-right: 0;
+    }
+
+    .images .img span {
+        display: none;
+        text-transform: capitalize;
+        z-index: 2;
+    }
+
+    .images .img::after {
+        content: '';
+        width: 100%;
+        height: 100%;
+        transition: opacity .1s ease-in;
+        border-radius: 4px;
+        opacity: 0;
+        position: absolute;
+    }
+
+    .images .img:hover::after {
+        display: block;
+        background-color: #000;
+        opacity: .5;
+    }
+
+    .images .img:hover span {
+        display: block;
+        color: #fff;
+    }
+
+    .images .pic {
+        background-color: #F5F7FA;
+        align-self: center;
+        text-align: center;
+        padding: 40px 0;
+        text-transform: uppercase;
+        color: #848EA1;
+        font-size: 20px;
+        cursor: pointer;
+        vertical-align: middle;
+        line-height: 70px;
+        height: 150px;
+        border-radius: 100px;
+    }
+
+    .upload-image-container input {
+        display: none !important;
+    }
+</style>
 
 <div class="container signup-container pt-7">
     <section class="mb-4">
@@ -36,7 +118,8 @@
                         href="{{ login_url }}">sign
                         in</a>.{% endblocktrans %}</p>
 
-                <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                <form class="signup" id="signup_form" method="post" enctype="multipart/form-data"
+                    action="{% url 'account_signup' %}">
                     {% csrf_token %}
 
                     {{ form.errors }}
@@ -82,7 +165,16 @@
                         <label data-error="wrong" data-success="right" for="password2">Password confirmation</label>
                     </div>
 
-                    <hr>
+
+                    <div class="md-form md-outline mt-0 upload-image-container">
+                        <div class="images">
+                            <div class="pic">
+                                <label for="id_profile_img"></label>
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        {{ form.profile_img }}
+                    </div>
 
                     <div class="d-block my-3">
                         {% for value, name in form.fields.user_type.choices %}
@@ -93,7 +185,6 @@
                         </div>
                         {% endfor %}
                     </div>
-
 
                     {% if redirect_field_value %}
                     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
@@ -125,4 +216,47 @@
         }
     );
 </script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+
+            uploadImage()
+
+
+            var ID
+            var way = 0
+            var queue = []
+            var fullStock = 10
+            var speedCloseNoti = 1000
+
+
+            function uploadImage() {
+
+                var button = $('.pic')
+                var uploader = $('#id_profile_img')
+                var images = $('.images')
+
+                button.on('click', function () {
+                    uploader.click()
+                })
+
+                uploader.on('change', function () {
+                    var reader = new FileReader()
+                    reader.onload = function (event) {
+                        images.prepend('<div class="img" style="background-image: url(\'' + event.target.result + '\');" rel="' + event.target.result + '"><span>remove</span></div>')
+                        button.hide()
+                    }
+                    reader.readAsDataURL(uploader[0].files[0])
+                })
+
+                images.on('click', '.img', function () {
+                    $(this).remove()
+                    button.show()
+                })
+            }
+        })
+    })(jQuery)
+
+</script>
+
 {% endblock %}

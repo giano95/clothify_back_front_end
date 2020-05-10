@@ -54,7 +54,7 @@
 
     #similar-post-view {
         position: relative;
-        height: 380px;
+        height: 368px;
     }
 
     #similar-post-view img {
@@ -68,7 +68,7 @@
 
     #similar-post-zoom-view {
         position: relative;
-        height: 380px;
+        height: 368px;
     }
 
     #similar-post-zoom-view img {
@@ -98,7 +98,6 @@
     .color-ball {
         width: 17px;
         height: 17px;
-        margin-left: 5px;
         margin-right: 5px;
         border-radius: 20px;
         border: 1px solid black;
@@ -233,6 +232,14 @@
     .upload-image-container input {
         display: none !important;
     }
+
+    .md-form.md-outline label.active {
+        padding-left: 5px !important;
+    }
+
+    .md-form.form-control {
+        border-radius: 2px !important;
+    }
 </style>
 
 
@@ -330,7 +337,7 @@
                     <!-- Name -->
 
                     <!-- Rating -->
-                    <ul class="rating" style="margin-bottom: 5em;">
+                    <ul class="rating" style="margin-bottom: 2em;">
                         <li>
                             <i
                                 class="{% if item.reviews_vote >= 1 %}fas{% else %}far{% endif %} fa-star text-primary"></i>
@@ -353,6 +360,13 @@
                         </li>
                     </ul>
                     <!-- Rating -->
+
+                    <!-- Price -->
+                    <div class="">
+                        <h2 class="font-roboto" style="font-size: 1.4em; margin-bottom: 1.0em;"> $
+                            {{ item.price }}</h2>
+                    </div>
+                    <!-- Price -->
 
                     <!-- Description -->
                     <p class="mb-4">{{ item.description }}</p>
@@ -448,29 +462,36 @@
                         aria-controls="reviews" aria-selected="true">Reviews</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="add-review-tab" data-toggle="tab" href="#add-review-container" role="tab"
-                        aria-controls="add-review-container" aria-selected="false">Add review</a>
+                    <a class="nav-link" id="post-review-tab" data-toggle="tab" href="#post-review-container" role="tab"
+                        aria-controls="post-review-container" aria-selected="false">Post review</a>
                 </li>
             </ul>
 
             <div class="tab-content" id="advancedTabContent">
 
-                {% if item.get_reviews %}
-
                 <!-- Tab reviews -->
                 <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+
+                    {% if item.get_reviews %}
+
                     {% for review in item.get_reviews %}
+
                     <div class="media mt-3 mb-4">
-                        <img id="profile-img" class="d-flex mr-3 z-depth-1" src="{{ review.user.profile_img.url }}"
-                            style="border-radius: 50%; height: 70px; width:70px" alt="Generic placeholder image">
-                        <div class="media-body">
+
+                        <div style="position: relative !important; height: 80px;">
+                            <img id="profile-img" class="d-flex z-depth-1" src="{{ review.user.profile_img.url }}"
+                                style="border-radius: 50%; height: 70px; width:70px" alt="Generic placeholder image">
+                            <span class="badge badge-pill badge-primary" style="position: absolute; bottom: -6px; left:50%;transform: translate(-50%, -50%);
+                                margin: 0 auto;">{{ review.user }}</span>
+                        </div>
+
+                        <div class="ml-4 media-body">
 
                             <div class="d-flex justify-content-between">
 
-                                <p class="mt-0 mb-0" style="font-size: larger;">
-                                    <strong>{{ review.user }} </strong> -
+                                <h3 class="m-0 p-0 font-roboto" style="font-size: x-large; color: black !important;">
                                     <strong>{{ review.title }}</strong>
-                                </p>
+                                </h3>
 
                                 <ul class="rating mb-0">
                                     <li><i
@@ -493,7 +514,7 @@
 
                             </div>
 
-                            <p class="mt-0 pt-0 text-muted">{{ review.get_only_date }}</p>
+                            <p class="mt-0 pt-0 mb-2 text-muted">{{ review.get_only_date }}</p>
                             <p class="mb-0">{{ review.comment }}</p>
                         </div>
                     </div>
@@ -512,106 +533,140 @@
                     <hr class="mt-4">
 
                     {% endfor %}
+
+                    {% else %}
+
+                    <div class="text-center">
+                        <h2 class="font-roboto" style="padding: 160px !important;">
+                            No reviews yet,
+                            <span><a id="post-review-link" class="text-primary">write one</a></span>
+                            yourself
+                        </h2>
+                    </div>
+
+                    <hr>
+
+                    {% endif %}
+
                 </div>
 
-                {% else %}
-                <div class="tab-pane fade show active text-center" id="reviews" role="tabpanel"
-                    aria-labelledby="reviews-tab" style="height: 400px !important;">
+                <!-- Tab Post Review -->
+                <div class="tab-pane fade" id="post-review-container" role="tabpanel" aria-labelledby="post-review-tab">
 
-                    <h1 style="padding: 160px !important;">
-                        No reviews yet
-                        <span><i class="far fa-frown pl-1"></i></span>
-                    </h1>
+                    {% if user.is_authenticated %}
 
+                    <div class="media mt-3 mb-4">
 
-                </div>
+                        <div style="position: relative !important; height: 80px;">
+                            <img id="profile-img" class="d-flex z-depth-1" src="{{ user.profile_img.url }}"
+                                style="border-radius: 50%; height: 70px; width:70px" alt="Generic placeholder image">
+                            <span class="badge badge-pill badge-primary" style="position: absolute; bottom: -6px; left:50%;transform: translate(-50%, -50%);
+                                margin: 0 auto;">{{ user }}</span>
+                        </div>
 
-                {% endif %}
+                        <div class="ml-4 media-body">
 
-                <!-- Tab add review -->
-                <div class="tab-pane fade" id="add-review-container" role="tabpanel" aria-labelledby="add-review-tab">
-                    <h5 class="mt-4">Add a review</h5>
-                    <p>Your email address will not be published.</p>
+                            <form style="width: 100%" method="POST" class="form-group" enctype="multipart/form-data"
+                                id="formreview">
 
-                    <form style="width: 100%; margin-bottom: 1cm;" method="POST" class="form-group"
-                        enctype="multipart/form-data" id="formreview">
-                        {% csrf_token %}
-                        <div class="my-3">
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="md-form md-outline mt-0">
+                                {% csrf_token %}
+
+                                <div class="d-flex justify-content-between">
+                                    <div class="md-form md-outline mt-0 mb-1" style="width: 80% !important;">
                                         {{ itemReviewForm.title }}
                                         <label for="title">Title</label>
                                     </div>
-                                </div>
-                                <div class="col-4 ml-auto" style="text-align: right;">
                                     <div>
-                                        {{ itemReviewForm.vote }}
-                                    </div>
-                                    <ul class="rating">
-                                        <li>
-                                            <a>
-                                                <i id="one-star" class="far fa-star fa-lg text-primary"
-                                                    data-rating="1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a>
-                                                <i id="two-star" class="far fa-star fa-lg text-primary"
-                                                    data-rating="2"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a>
-                                                <i id="three-star" class="far fa-star fa-lg text-primary"
-                                                    data-rating="3"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a>
-                                                <i id="four-star" class="far fa-star fa-lg text-primary"
-                                                    data-rating="4"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a>
-                                                <i id="five-star" class="far fa-star fa-lg text-primary"
-                                                    data-rating="5"></i>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-9">
-                                    <div class="md-form md-outline mt-0">
-                                        {{ itemReviewForm.comment }}
-                                        <label for="comment">Description</label>
-                                    </div>
-                                </div>
-                                <div class="col-3 upload-image-container">
-                                    <div class="images" id="up_{{ itemReviewForm.img.html_name  }}">
-                                        <div class="pic" id="btn_{{ itemReviewForm.img.html_name }}">
-                                            <label for="id_{{ itemReviewForm.img.html_name }}">
-                                                <i class="fa fa-plus" aria-hidden="true"></i>
+                                        <div>
+                                            {{ itemReviewForm.vote }}
                                         </div>
+                                        <ul class="rating mb-0">
+                                            <li>
+                                                <a>
+                                                    <i id="one-star" class="far fa-star  text-primary"
+                                                        data-rating="1"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a>
+                                                    <i id="two-star" class="far fa-star  text-primary"
+                                                        data-rating="2"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a>
+                                                    <i id="three-star" class="far fa-star  text-primary"
+                                                        data-rating="3"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a>
+                                                    <i id="four-star" class="far fa-star text-primary"
+                                                        data-rating="4"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a>
+                                                    <i id="five-star" class="far fa-star text-primary"
+                                                        data-rating="5"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
-                                    {{ itemReviewForm.img }}
                                 </div>
-                            </div>
 
+                                <p class="mt-0 pt-0 mb-3 text-muted">{% now 'DATE_FORMAT' %}</p>
 
+                                <div class="d-flex justify-content-between">
 
+                                    <div class="md-form md-outline mt-0" style="width: 80% !important;">
+                                        {{ itemReviewForm.comment }}
+                                        <label for="comment">Comment</label>
+                                    </div>
 
-                            <div class="text-right pb-2">
-                                <button type="submit" class="btn btn-primary waves-effect waves-light">Add a
-                                    review</button>
-                            </div>
+                                    <div class="upload-image-container">
+                                        <div class="images" id="up_{{ itemReviewForm.img.html_name  }}"
+                                            style="width: 182px; height: 182px; line-height: 182px;">
+                                            <div class="pic" id="btn_{{ itemReviewForm.img.html_name }}"
+                                                style="width: 182px; height: 182px; line-height: 182px;">
+                                                <label for="id_{{ itemReviewForm.img.html_name }}">
+                                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                        {{ itemReviewForm.img }}
+                                    </div>
+
+                                </div>
+
+                                <div class="pb-2">
+                                    <button type="submit" class="btn btn-primary waves-effect waves-light"
+                                        style="width: 182px !important;">
+                                        Post review
+                                        <span><i class="far fa-comment ml-1"></i></span>
+                                    </button>
+                                </div>
+
+                            </form>
+
                         </div>
-                    </form>
+                    </div>
+
+                    {% else %}
+
+                    <div class="text-center">
+                        <h2 class="font-roboto" style="padding: 160px !important;">
+                            You must be <span><a href="{% url 'account_login' %}" class="text-primary">login</a></span>
+                            to post a Review
+                        </h2>
+                    </div>
+
+                    {% endif %}
+
                     <hr>
+
                 </div>
+                <!-- Tab Post Review -->
+
             </div>
         </div>
         <!-- Classic tabs -->
@@ -644,7 +699,7 @@
                         <div class="pt-4">
 
                             <h5>{{ p.name }}</h5>
-                            <p><span><strong>$ {{ p.price }}</strong></span></p>
+                            <p class="text-primary"><span><strong>$ {{ p.price }}</strong></span></p>
 
                         </div>
 
@@ -686,6 +741,11 @@
     });
 </script>
 <script text="text/javascript">
+
+    $('#post-review-link').on('click', function () {
+
+        $('#post-review-tab').click()
+    })
 
     function redirect(url) {
         window.location.href = url

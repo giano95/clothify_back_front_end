@@ -210,6 +210,11 @@ class UpdateView(View):
             for form in formset.cleaned_data:
                 if (form):
                     image = ItemImage(image=form['image'])
+                    print(image)
+                    if (ItemImage.objects.filter(image=image).exists()):
+                        image_old = ItemImage.objects.get(image=image)
+                        image_old.delete()
+
                     image.save()
                     images.append(image)
                 else:
@@ -241,3 +246,13 @@ class UpdateView(View):
             },
             content_type=RequestContext(self.request)
         )
+
+
+class DeleteItemImageView(View):
+
+    def post(self, request, *args, **kwargs):
+        itemimage_name = request.POST.get('itemimage_name', None)
+        itemimage = ItemImage.objects.filter(image=itemimage_name)
+        itemimage.delete()
+
+        return HttpResponse("eliminato")

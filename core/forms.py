@@ -57,21 +57,7 @@ class CheckoutForm(forms.ModelForm):
             'city': Select(attrs={'class': 'custom-select d-block w-100'}),
             'zip_code': TextInput(attrs={'id': 'zip_code', 'class': 'form-control'}),
         }
-    PAYMENT_CHOICES = (
-        ('S', 'Stripe'),
-        ('P', 'PayPal')
-    )
-
-    same_billing_address = forms.BooleanField(widget=CheckboxInput(attrs={
-        'id': 'same_billing_address',
-        'class': 'custom-control-input'
-    }))
-    save_info = forms.BooleanField(widget=CheckboxInput(attrs={
-        'id': 'save_info',
-        'class': 'custom-control-input'
-    }))
-    payment_option = forms.ChoiceField(
-        choices=PAYMENT_CHOICES, widget=RadioSelect)
+   
 
 
 class ContactForm(forms.Form):

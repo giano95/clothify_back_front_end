@@ -6,6 +6,7 @@ from statistics import mean
 from math import ceil
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+import os
 
 
 LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris id turpis porttitor, vestibulum massa vel, tristique ante. Curabitur hendrerit quam massa, sit amet lobortis tellus consectetur eu. Suspendisse aliquet commodo tristique. Vivamus maximus pharetra sapien, ornare tempor libero egestas sed. Phasellus massa magna, tincidunt vitae nisl eget, rhoncus bibendum enim. Duis sed lectus sed leo pharetra ultrices id sit amet dolor. Vivamus pellentesque mi sed dignissim rhoncus. Nunc in sollicitudin quam. Nullam ornare dui quis sapien bibendum, nec sagittis purus venenatis.'
@@ -17,15 +18,16 @@ class Item(models.Model):
     id = models.AutoField(primary_key=True)
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              on_delete=models.CASCADE)
+                              on_delete=models.CASCADE,
+                              related_name='items')
     name = models.CharField(max_length=100)
     price = models.FloatField()
-    category = models.ForeignKey('item.ItemCategory', on_delete=models.CASCADE)
+    category = models.ForeignKey('item.ItemCategory', on_delete=models.CASCADE, related_name='category')
     description = models.CharField(max_length=1000, default=LOREM_IPSUM)
     img = models.ImageField(upload_to='item/img/')
-    images = models.ManyToManyField('item.ItemImage')
-    color = models.ManyToManyField('item.ItemColor')
-    quantities_size = models.ManyToManyField('item.ItemQuantitySize')
+    images = models.ManyToManyField('item.ItemImage', related_name='images')
+    color = models.ManyToManyField('item.ItemColor', related_name='color')
+    quantities_size = models.ManyToManyField('item.ItemQuantitySize', related_name='quantities_size')
     label = models.ForeignKey(
         'item.ItemLabel', on_delete=models.CASCADE, null=True, blank=True)
     not_discounted_price = models.FloatField(blank=True, null=True)
@@ -81,7 +83,7 @@ class Item(models.Model):
 class ItemImage(models.Model):
 
     image = models.ImageField(
-        upload_to='item/img/', verbose_name='Image')
+        upload_to='item/img/')
 
     def __str__(self):
         return '{}'.format(self.image)
@@ -188,9 +190,20 @@ class ItemCategory(models.Model):
 
 @receiver(pre_delete, sender=Item, dispatch_uid='remove_related_item_field')
 def remove_related_item_field(sender, instance, using, **kwargs):
+
+    if instance.name == 'test':
+        return
+
+    # Remove the primary img file
+    os.remove(os.getcwd() + '/' + instance.img.url)
+
+    # Remove all secondary images instances and files
     images = instance.images.all()
     for image in images:
+        os.remove(os.getcwd() + '/' + image.image.url)
         ItemImage.objects.filter(id=image.id).delete()
+    
+    # Remove all Quantity Size instances 
     quantities_size = instance.quantities_size.all()
     for quantity_size in quantities_size:
         ItemQuantitySize.objects.filter(id=quantity_size.id).delete()

@@ -20,12 +20,16 @@ from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.db.models import Sum
 from django.core.exceptions import PermissionDenied
-
-from core.models import User
+from knox.models import AuthToken
+from core.models import User, CheckoutInfo
 from order.models import Order, OrderItem
 from core.forms import ContactForm, CheckoutForm
 from cities_light.models import Country, Region, City
 from item.models import Item, ItemCategory, ItemColor, ItemImage, ItemLabel, ItemReview, ItemSize
+from rest_framework import viewsets, generics, status, views
+from rest_framework.views import APIView, Response
+from core.serializers import *
+from order.serializers import OrderItemSerializer
 
 
 import stripe
@@ -59,6 +63,201 @@ def is_sub_seller(user):
         return False
 
 
+# POST a Contact email
+class ContactAPI(views.APIView):
+
+    def post(self, request):
+        serializer = ContactSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            
+            email = serializer.data['email']
+            subject = serializer.data['subject']
+            content = serializer.data['content']
+            try:
+                send_mail(subject, content, email, [
+                          'marco.gianelli.95@gmail.com'])
+                messages.success(
+                    self.request, 'Success! Thank you for your message.')
+            except BadHeaderError:
+                return Response({'serializer': serializer.data}, status=status.HTTP_206_PARTIAL_CONTENT)
+            return Response({'serializer': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'serializer': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# REGINSTER an User
+class UserRegistrationAPI(generics.CreateAPIView):
+    
+    serializer_class = UserRegistrationSerializer
+
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        
+        if serializer.is_valid():
+
+            serializer.save()
+            return Response({'serializer': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'serializer': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# LOGIN an User
+class UserLoginAPI(generics.GenericAPIView):
+    serializer_class = UserLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        return Response({
+            "user": UserSerializer(user, context=serializer.data).data,
+            "token": AuthToken.objects.create(user)[1]
+        })
+
+
+# POST a CheckoutInfo
+class PostCheckoutInfoAPI(generics.CreateAPIView):
+    
+    serializer_class = PostCheckoutInfoSerializer
+
+    def post(self, request):
+        serializer = PostCheckoutInfoSerializer(data=request.data)
+        
+        if serializer.is_valid():
+             
+            serializer.save()
+
+            # If the user has an older info we delete it
+            try:
+                info = CheckoutInfo.objects.filter(user=serializer.data['user']).exclude(id=serializer.data['id'])
+            except CheckoutInfo.DoesNotExist and IndexError:
+                info = None
+            if info:
+                info.delete()
+
+            return Response({'serializer': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'serializer': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PaymentAPI(APIView):
+
+    def get(self, request, user_id):
+
+        user = User.objects.get(id=user_id)
+        
+        try:
+            order = Order.objects.filter(
+                user=user, is_ordered=False)[0]
+        except Order.DoesNotExist and IndexError:
+            order = None
+
+        if not order:
+            return JsonResponse({'Message': 'error: no order obj for this user'}, status=status.HTTP_400_BAD_REQUEST)
+
+        owners = OrderItem.objects.filter(
+            user=user,
+            is_ordered=False,
+        ).values_list('item__owner', flat=True).distinct()
+
+        order_items_to_pay = OrderItem.objects.filter(
+            user=user,
+            is_ordered=False,
+            item__owner=owners[0]
+        )
+        amount_to_pay = 0
+        for order_item in order_items_to_pay:
+            amount_to_pay += order_item.get_total_price()
+    
+
+        if not order_items_to_pay:
+            return JsonResponse({'order': None}, status=status.HTTP_200_OK)
+
+        order_items_to_pay.update(pending=True)
+
+        serializer = OrderItemSerializer(order_items_to_pay, many=True)
+        
+        return JsonResponse({'order': serializer.data, 'amount_to_pay': amount_to_pay}, status=status.HTTP_200_OK)
+
+
+
+# GET the client_secret to procede to a payment
+class PostPaymentAPI(APIView):
+  
+    def post(self, request, user_id):
+
+        user = User.objects.get(id=user_id)
+        token = request.data
+
+        order = Order.objects.filter(
+            user=user,
+            is_ordered=False
+        )
+        pending_order_items = OrderItem.objects.filter(
+            user=user,
+            is_ordered=False,
+            pending=True
+        )
+        
+        if not order.exists() or not pending_order_items.exists():
+            return JsonResponse({'response': 'error'})
+
+        connected_account_id = pending_order_items[0].item.owner.connected_account_id
+
+        if connected_account_id is None:
+            return JsonResponse({'response': 'error'})
+
+        amount_to_pay = 0
+        for order_item in pending_order_items:
+            amount_to_pay += order_item.get_total_price()
+
+        amount = round(amount_to_pay * 100.0)
+        application_fee_amount = round(0.123 * amount)
+
+        charge = stripe.Charge.create(
+            source=token,
+            amount=amount,
+            currency='eur',
+            application_fee_amount=application_fee_amount,
+            transfer_data={
+                'destination': connected_account_id,
+            },
+        )
+        print(charge)
+
+        # handle the successfull payment
+        pending_items = pending_order_items
+
+        for order_item in pending_items:
+            order_item.item.dec_quantity_size(
+                order_item.item_size, order_item.quantity)
+
+        pending_items.update(pending=False, is_ordered=True)
+
+        items_to_pay = OrderItem.objects.filter(
+            user=request.user,
+            is_ordered=False
+        )
+
+        if items_to_pay:
+            return JsonResponse({'response': 'payment'})
+        else:
+            order = Order.objects.filter(
+                user=request.user,
+                is_ordered=False
+            )
+            if order:
+                order.update(is_ordered=True)
+
+            return JsonResponse({'response': 'home'})
+
+
+#
+#_________________________API VIEWS END___________________________
+#
+
+
 class HomeView(ListView):
     model = Item
     paginate_by = 6
@@ -86,8 +285,9 @@ class ShopView(ListView):
         context['sizes'] = [size[0] for size in ItemSize.CHOICES]
 
         # if there are some url parameters also save them in the context
-        context['category_name'] = (
-            self.request.GET.get('category_name') or None)
+        category_name = (self.request.GET.get('category_name') or None)
+        if category_name:
+            context['category_name'] = category_name.split(",")[:-1]
         context['query_text'] = (self.request.GET.get('query_text') or None)
         reviews_vote = (self.request.GET.get('reviews_vote') or None)
         if reviews_vote:
@@ -108,42 +308,46 @@ class ShopView(ListView):
         return context
 
     def get_queryset(self):
-        result = super(ShopView, self).get_queryset()
-
+        result = super(ShopView, self).get_queryset().distinct()
+        
         # Filter by the category
-        category_name = self.request.GET.get('category_name')
+        category_name = (self.request.GET.get('category_name') or None)
         if category_name:
-            items = Item.objects.filter(category__name=category_name)
-            result = items
+            category_name = category_name.split(",")[:-1]
+
+            items = Item.objects.all().filter(
+                category__name__in=category_name).distinct()
+            result &= items
 
         # Filter by the some query text
         query_text = self.request.GET.get('query_text')
         if query_text:
-            items = Item.objects.filter(name__icontains=query_text)
-            result = items
+            items = Item.objects.filter(name__icontains=query_text).distinct()
+            result &= items
 
         # Filter by the avg reviews vote
         reviews_vote = self.request.GET.get('reviews_vote')
         if reviews_vote:
-            items = []
+            ids = []
             for item in Item.objects.all():
                 if int(reviews_vote) == item.reviews_vote:
-                    items.append(item)
-            result = items
+                    ids.append(item.id)
+            items = Item.objects.filter(id__in=ids).distinct()
+            result &= items
 
         # Filter by the price
         from_price = self.request.GET.get('from_price')
         to_price = self.request.GET.get('to_price')
         if from_price and to_price:
             items = Item.objects.filter(
-                price__range=(int(from_price), int(to_price)))
-            result = items
+                price__range=(int(from_price), int(to_price))).distinct()
+            result &= items
         elif from_price:
-            items = Item.objects.filter(price__gte=int(from_price))
-            result = items
+            items = Item.objects.filter(price__gte=int(from_price)).distinct()
+            result &= items
         elif to_price:
-            items = Item.objects.filter(price__lte=int(to_price))
-            result = items
+            items = Item.objects.filter(price__lte=int(to_price)).distinct()
+            result &= items
 
         # Filter by the colors
         colors_name = (self.request.GET.get('colors_name') or None)
@@ -152,7 +356,7 @@ class ShopView(ListView):
             for size in Item.objects.all().values_list('color'):
                 print(size)
             items = Item.objects.all().filter(color__name__in=colors_name).distinct()
-            result = items
+            result &= items
 
         # Filter by the size
         sizes_tag = (self.request.GET.get('sizes_tag') or None)
@@ -161,7 +365,7 @@ class ShopView(ListView):
 
             items = Item.objects.all().filter(
                 quantities_size__size__tag__in=sizes_tag).distinct()
-            result = items
+            result &= items
 
         return result
 
@@ -170,32 +374,53 @@ class ShopView(ListView):
 class CheckoutView(View):
 
     def get(self, *args, **kwargs):
-        form = CheckoutForm()
+
+        # If the user has an older info we use it to prefill the form, else we init it empty
+        try:
+            info = CheckoutInfo.objects.filter(user=self.request.user)[0]
+        except CheckoutInfo.DoesNotExist and IndexError:
+            info = None
+        if info:
+            form = CheckoutForm(CheckoutInfoSerializer(info).data)
+        else:
+            form = CheckoutForm()
+
+        try:
+            order = Order.objects.filter(
+                user=self.request.user, is_ordered=False)[0]
+        except Order.DoesNotExist and IndexError:
+            # TODO:  handle the error that the user is going to checout an empty order
+            order = None
+
+        return render(self.request, "checkout.html", {'form': form, 'order': order})
+
+    def post(self, *args, **kwargs):
         try:
             order = Order.objects.filter(
                 user=self.request.user, is_ordered=False)[0]
         except Order.DoesNotExist and IndexError:
             order = None
-        return render(self.request, "checkout.html", {'form': form, 'order': order})
 
-    def post(self, *args, **kwargs):
         form = CheckoutForm(self.request.POST or None)
-        order = Order.objects.filter(
-            user=self.request.user,
-            is_ordered=False
-        )
-        if not order.exists() or not form.is_valid():
-            print("Failed checkout")
-            return render(self.request, 'checkout.html', {'form': form})
 
-        order = order[0]
+        if not form.is_valid():
+            return render(self.request, 'checkout.html', {'form': form, 'order': order})
+
+        # If exists delete the old checkout info
+        try:
+            info = CheckoutInfo.objects.filter(user=self.request.user)
+        except CheckoutInfo.DoesNotExist and IndexError:
+            info = None
+        if info:
+            info.delete()
+
         checkout_info = form.save(commit=False)
         checkout_info.user = self.request.user
         checkout_info.save()
         form.save_m2m()
         order.checkout_info = checkout_info
         order.save()
-        return redirect('core:payment', payment_option=form.cleaned_data['payment_option'])
+        return redirect('core:payment')
 
 
 class PaymentView(View):
@@ -398,6 +623,7 @@ def get_cities(request):
     cities = list(City.objects.filter(region_id=region.id).values_list(
         'name', flat=True).order_by('name'))
     return JsonResponse({'cities': cities})
+
 
 
 def set_group(sender, instance, **kwargs):

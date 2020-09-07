@@ -5,7 +5,7 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 DEBUG = True
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '-05sgp9!deq=q1nltm@^^2cc+v29i(tyybv3v2t77qi66czazj'
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.39']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -26,6 +26,9 @@ INSTALLED_APPS = [
     'cities_light',
     'stripe',
     'djstripe',
+    'rest_framework',
+    'knox',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +131,22 @@ STRIPE_TEST_SECRET_KEY = os.environ.get(
 STRIPE_LIVE_MODE = False  # Change to True in production
 # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 DJSTRIPE_WEBHOOK_SECRET = "whsec_xxx"
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny', ],
+    'DEFAULT_AUTHENTICATION_CLASSES':
+        (
+            'knox.auth.TokenAuthentication',
+            'rest_framework.authentication.SessionAuthentication',
+            'rest_framework.authentication.BasicAuthentication',
+        ),
+}

@@ -79,6 +79,21 @@
 
                     {% endif %}
 
+                    {% if request.user|is_unsub_seller_tag %}
+
+                    <!-- Add Item  -->
+                    <li class="nav-item ml-2 mr-2">
+                        <a id="stripe-registration-a" type="button"
+                            class="btn btn-outline-primary btn-md btn-navbar waves-effect waves-light"
+                            style="margin-left: 10px !important;">
+                            <!-- <i class="fa fa-plus" aria-hidden="true"></i> -->
+                            <span class="clearfix d-none d-sm-inline-block" style="width: 52px;">Stripe</span>
+                        </a>
+                    </li>
+                    <!-- Add Item  -->
+
+                    {% endif %}
+
                     {% if request.user.is_authenticated %}
 
                     <!-- Logout -->
@@ -189,6 +204,15 @@
 
     // transition the carousel every tot second
     window.setInterval(function () { $('.carousel').carousel('next') }, 15000);
+
+    // handle stripe registration url
+    $('#stripe-registration-a').click(function() {
+        var response = fetch('connect/get_oauth_url/').then(function (response) {
+            return response.json();
+        }).then(function (responseJson) {
+            window.location.href = responseJson.oauth_url
+        })
+    })
 
 </script>
 {% endblock extra_scripts %}

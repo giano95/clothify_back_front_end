@@ -65,11 +65,13 @@
 
                         <div class="font-roboto">
 
+                        
+
                             {% for category in categories %}
 
                             <div class="form-check pl-0 mb-3">
-                                <input type="radio" class="category-radio form-check-input" id="{{ category.name }}"
-                                    name="CategoryRadios" {% if category_name == category.name %}checked{% endif %}>
+                                <input type="checkbox" class="category-checkbox form-check-input filled-in" id="{{ category.name }}"
+                                    {% if category.name in category_name %}checked{% endif %}>
                                 <label class="form-check-label font-roboto card-link-secondary"
                                     for="{{ category.name }}">{{ category.name }}</label>
                             </div>
@@ -455,53 +457,110 @@
         <!--Grid row-->
 
     </div>
+
+    <div id="category_name" style="display: none;">{% if category_name %}{% for c in category_name %}{{c}},{% endfor %}{% endif %}</div>
+    <div id="reviews_vote" style="display: none;">{% if reviews_vote %}{{ reviews_vote }}{% endif %}</div>
+    <div id="to_price" style="display: none;">{% if to_price %}{{ to_price }}{% endif %}</div>
+    <div id="from_price" style="display: none;">{% if from_price %}{{ from_price }}{% endif %}</div>
+    <div id="colors_name" style="display: none;">{% if colors_name %}{% for c in colors_name %}{{c}},{% endfor %}{% endif %}</div>
+    <div id="sizes_tag" style="display: none;">{% if sizes_tag %}{% for c in sizes_tag %}{{c}},{% endfor %}{% endif %}</div>
+
 </main>
 <!--Main layout-->
 
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script text="text/javascript">
 
+    const callers = {
+        category: 'category',
+        review: 'review',
+        from_price: 'from_price',
+        to_price: 'to_price',
+        price: 'price',
+        color: 'color',
+        size: 'size'
+    }
+
     var delay = 500
     var colors_name = ''
     var sizes_tag = ''
+    var category_name = ''
 
-    function redirect(url) {
+    function redirect(url, caller) {
+        
+        if ($('#category_name').html().length > 0 && caller != callers.category)
+            url += '&category_name=' + $('#category_name').html()
+        else if ($('#reviews_vote').html().length > 0 && caller != callers.review)
+            url += '&reviews_vote=' + $('#reviews_vote').html()
+        else if ($('#to_price').html().length > 0 && $('#from_price').html().length > 0 && caller != callers.price)
+            url += '&from_price=' + $('#from_price').html() + '&to_price=' + $('#to_price').html()
+        else if ($('#to_price').html().length > 0 && caller != callers.to_price && caller != callers.price)
+            url += '&to_price=' + $('#to_price').html()
+        else if ($('#from_price').html().length > 0 && caller != callers.from_price && caller != callers.price)
+            url += '&from_price=' + $('#from_price').html()
+        else if ($('#colors_name').html().length > 0 && caller != callers.color)
+            url += '&colors_name=' + $('#colors_name').html()
+        else if ($('#sizes_tag').html().length > 0 && caller != callers.size)
+            url += '&sizes_tag=' + $('#sizes_tag').html()
+
+        url += '#anchor'
+
         $(window.location).attr('href', url)
     }
 
-    $('.category-radio').on('click', function () {
-        setTimeout(redirect, delay, '?category_name=' + $(this).attr('id') + '#anchor')
+    $('.category-checkbox').map(function () {
+        if ($(this).is(":checked")) {
+
+            if (!category_name.includes($(this).attr('id'))) {
+                category_name += $(this).attr('id') + ','
+            }
+        }
     })
+    $('.category-checkbox').click(function () {
+
+        if ($(this).is(":checked")) {
+            category_name += $(this).attr('id') + ','
+            console.log('ciao')
+            setTimeout(redirect, delay, '?category_name=' + category_name, callers.category)
+
+        }
+        else if ($(this).is(":not(:checked)")) {
+            category_name = category_name.replace($(this).attr('id') + ',', '');
+            setTimeout(redirect, delay, '?category_name=' + category_name, callers.category)
+
+        }
+    });
     $('#one-star').on('click', function () {
-        setTimeout(redirect, delay, '?reviews_vote=1#anchor')
+        setTimeout(redirect, delay, '?reviews_vote=1', callers.review)
     })
     $('#two-star').on('click', function () {
-        setTimeout(redirect, delay, '?reviews_vote=2#anchor')
+        setTimeout(redirect, delay, '?reviews_vote=2', callers.review)
     })
     $('#three-star').on('click', function () {
-        setTimeout(redirect, delay, '?reviews_vote=3#anchor')
+        setTimeout(redirect, delay, '?reviews_vote=3', callers.review)
     })
     $('#four-star').on('click', function () {
-        setTimeout(redirect, delay, '?reviews_vote=4#anchor')
+        setTimeout(redirect, delay, '?reviews_vote=4', callers.review)
     })
     $('#five-star').on('click', function () {
-        setTimeout(redirect, delay, '?reviews_vote=5#anchor')
+        setTimeout(redirect, delay, '?reviews_vote=5', callers.review)
     })
     $('#under50').on('click', function () {
-        setTimeout(redirect, delay, '?to_price=50#anchor')
+        setTimeout(redirect, delay, '?to_price=50', callers.to_price)
     })
     $('#50to100').on('click', function () {
-        setTimeout(redirect, delay, '?from_price=50&to_price=100#anchor')
+        setTimeout(redirect, delay, '?from_price=50&to_price=100', callers.price)
     })
     $('#100to200').on('click', function () {
-        setTimeout(redirect, delay, '?from_price=100&to_price=200#anchor')
+        setTimeout(redirect, delay, '?from_price=100&to_price=200', callers.price)
     })
     $('#200to500').on('click', function () {
-        setTimeout(redirect, delay, '?from_price=200&to_price=500#anchor')
+        setTimeout(redirect, delay, '?from_price=200&to_price=500', callers.price)
     })
     $('#above500').on('click', function () {
-        setTimeout(redirect, delay, '?from_price=500#anchor')
+        setTimeout(redirect, delay, '?from_price=500', callers.from_price)
     })
+
     $('.color-checkbox').map(function () {
         if ($(this).is(":checked")) {
 
@@ -514,12 +573,12 @@
 
         if ($(this).is(":checked")) {
             colors_name += $(this).attr('id') + ','
-            setTimeout(redirect, delay, '?colors_name=' + colors_name + '#anchor')
+            setTimeout(redirect, delay, '?colors_name=' + colors_name, callers.color)
 
         }
         else if ($(this).is(":not(:checked)")) {
             colors_name = colors_name.replace($(this).attr('id') + ',', '');
-            setTimeout(redirect, delay, '?colors_name=' + colors_name + '#anchor')
+            setTimeout(redirect, delay, '?colors_name=' + colors_name, callers.color)
 
         }
     });
@@ -535,13 +594,13 @@
 
         if ($(this).is(":checked")) {
             sizes_tag += $(this).attr('id') + ','
-            setTimeout(redirect, delay, '?sizes_tag=' + sizes_tag + '#anchor')
+            setTimeout(redirect, delay, '?sizes_tag=' + sizes_tag, callers.size)
             console.log('ciao')
 
         }
         else if ($(this).is(":not(:checked)")) {
             sizes_tag = sizes_tag.replace($(this).attr('id') + ',', '');
-            setTimeout(redirect, delay, '?sizes_tag=' + sizes_tag + '#anchor')
+            setTimeout(redirect, delay, '?sizes_tag=' + sizes_tag, callers.size)
 
         }
     });

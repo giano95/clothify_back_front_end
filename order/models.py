@@ -1,15 +1,13 @@
 from django.db import models
 from django.conf import settings
-from django_group_by import GroupByMixin
+
 from django.db.models.query import QuerySet
 
 
-class OrderItemQuerySet(QuerySet, GroupByMixin):
-    pass
+
 
 
 class OrderItem(models.Model):
-    objects = OrderItemQuerySet.as_manager()
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
@@ -35,7 +33,7 @@ class Order(models.Model):
                              on_delete=models.CASCADE)
     order_items = models.ManyToManyField(OrderItem)
     start_date = models.DateTimeField(auto_now_add=True)
-    ordered_date = models.DateTimeField()
+    ordered_date = models.DateTimeField(blank=True, null=True)
     is_ordered = models.BooleanField(default=False)
     checkout_info = models.ForeignKey(
         'core.CheckoutInfo', on_delete=models.SET_NULL, null=True, blank=True)
@@ -55,4 +53,4 @@ class Order(models.Model):
             return False
 
     def __str__(self):
-        return self.user.username
+        return self.user.username + ' order'

@@ -142,16 +142,7 @@
               <!--Grid column-->
               <div class="col-md-8 mt-4">
 
-                <div class="custom-control custom-checkbox">
-                  {{ form.same_billing_address }}
-                  <label class="custom-control-label" for="same_billing_address">Shipping address is the same as my
-                    billing
-                    address</label>
-                </div>
-                <div class="custom-control custom-checkbox">
-                  {{ form.save_info }}
-                  <label class="custom-control-label" for="save_info">Save this information for next time</label>
-                </div>
+                <!-- S P A C I N G -->
 
               </div>
               <!--Grid column-->
@@ -159,9 +150,7 @@
             </div>
             <!--Grid row-->
 
-
-            <hr class="mb-4">
-            <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to checkout</button>
+            <button id="checkout-form-submit" style="display: none;" type="submit"></button>
 
           </form>
 
@@ -204,7 +193,7 @@
                 </span>
               </li>
             </ul>
-            <a href="{% url 'core:payment' %}">
+            <a id="payment-button">
               <button type="button" class="btn btn-primary btn-block btn-checkout waves-effect waves-light">
                 payment
                 <i class="fas fa-credit-card fa-lg pl-1"></i>
@@ -239,6 +228,12 @@
 
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script language="javascript">
+
+  // Submit the Checkout form when the use click the payment button
+  $('#payment-button').on("click", function(){
+    $('#checkout-form-submit').trigger("click");
+  });
+
 
   $('.btn-checkout').hover(
     function () {

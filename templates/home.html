@@ -49,7 +49,7 @@
 
                         <div class="view zoom brighten z-depth-2 rounded">
                             <img class="img-fluid" src="{{ category.img.url }}" alt="Sample">
-                            <a href="" class="text-white">
+                            <a href="{% url 'core:shop' %}?category_name={{ category.name }}," class="text-white">
                                 <div class="mask rgba-black-light waves-effect waves-light">
                                     <div class="d-flex align-items-end h-100 p-3">
                                         <h5 class="mb-0">{{ category.name }}</h5>

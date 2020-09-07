@@ -1,5 +1,13 @@
 from django.urls import path
+from knox import views as knox_views
 from core.views import (
+    ContactAPI,
+    UserRegistrationAPI,
+    UserLoginAPI,
+    PostCheckoutInfoAPI,
+    PostPaymentAPI,
+    PaymentAPI,
+    #_____API VIEWS END_____
     HomeView,
     ShopView,
     CheckoutView,
@@ -12,12 +20,20 @@ from core.views import (
     get_regions,
     get_cities,
     permission_denied,
-    payment_succeeded
+    payment_succeeded,
 )
 
 
 app_name = 'core'
 urlpatterns = [
+    path('api/contact/', ContactAPI.as_view()),
+    path('api/auth/register', UserRegistrationAPI.as_view()),
+    path('api/auth/logout', knox_views.LogoutView.as_view()),
+    path('api/auth/login', UserLoginAPI.as_view()),
+    path('api/checkout_info/add/', PostCheckoutInfoAPI.as_view()),
+    path('api/post_payment/<user_id>/', PostPaymentAPI.as_view()),
+    path('api/payment/<user_id>/', PaymentAPI.as_view()),
+    #_____API VIEWS END_____
     path('', HomeView.as_view(), name='home'),
     path('shop/', ShopView.as_view(), name="shop"),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
@@ -32,3 +48,5 @@ urlpatterns = [
     path('get_regions/', get_regions, name='get_regions'),
     path('get_cities/', get_cities, name='get_cities'),
 ]
+
+

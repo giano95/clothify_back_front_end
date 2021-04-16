@@ -10,7 +10,7 @@ django-allauth==0.41.0
 django-autoslug-iplweb==1.9.4.dev0
 django-cities-light==3.5.0
 django-crispy-forms==1.9.0
-django-debug-toolbar==1.10.1
+django-debug-toolbar==1.11.1
 django-filter==2.3.0
 django-jquery==3.1.0
 django-rest-knox==4.1.0
